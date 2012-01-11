@@ -36,13 +36,26 @@ u16int inw(u16int port)
 
 void memcpy(void * origin, void * destiny, u32int length)
 {
-   // TODO: ...
+   // TODO: This is the worst implementation in the history of operating systems. Improve!
+	u8int* dst8 = (u8int*)destiny;
+	u8int* src8 = (u8int*)origin;
+
+	while (length--) {
+		*dst8++ = *src8++;
+	}
+
    return;
 }
 
-void memset(void * origin, u32int length, u32int new_value)
+void memset(void * origin, u32int length, u8int new_value)
 {
-   // TODO: ...
+   // TODO: This is the worst implementation in the history of operating systems. Improve!
+	u8int* dst8 = (u8int*)origin;
+
+	while (length--) {
+		*dst8++ = new_value;
+	}
+
    return;
 }
 

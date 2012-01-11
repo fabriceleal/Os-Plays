@@ -38,8 +38,9 @@ idt_ptr_t   idt_ptr;
 // initialises the GDT and IDT.
 void init_descriptor_tables()
 {
-   // Initialise the global descriptor table.
+   // Initialise the global descriptor table and the interrupt descriptor table.
    init_gdt();
+	init_idt();
 }
 
 static void init_gdt()

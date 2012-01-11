@@ -37,7 +37,7 @@ u8int inb(u16int port);
 u16int inw(u16int port);
 
 void memcpy(void * origin, void * destiny, u32int length);
-void memset(void * origin, u32int length, u32int new_value);
+void memset(void * origin, u32int length, u8int new_value);
 
 #endif // ___VAMI_COMMON
 
