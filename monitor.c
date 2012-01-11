@@ -19,7 +19,8 @@ static u16int cursor_y = 0;
 static u16int cursor_x = 0;
 
 #define SZ_SCREEN (80*25)
-static u16int video_memory[SZ_SCREEN] = {0};
+//static u16int video_memory[SZ_SCREEN] = {0};
+static u16int * video_memory = (u16int*)0xB8000;
 #undef SZ_SCREEN
 
 static void move_cursor()
