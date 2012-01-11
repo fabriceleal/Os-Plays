@@ -57,3 +57,9 @@ void monitor_write_dec(u32int n)
    // TODO: ...
 	return;
 } 
+
+void printf(){
+	// Refer to vsprintf at the linux0.1 code
+	// TODO: ...
+	return;
+}
