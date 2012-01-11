@@ -3,20 +3,21 @@
 # The only one that needs changing is the assembler
 # rule, as we use nasm instead of GNU as.
 
-SOURCES=boot.o
-
-CFLAGS=
+SOURCES=boot.o main.o
+CFLAGS=-nostdlib -nostdinc -fno-builtin -fno-stack-protector 
 LDFLAGS=-Tlink.ld
 ASFLAGS=-felf
+OUTPUT=kernel
 
 all: $(SOURCES) link 
 
+# '-' at the beginning of the command supresses output
 clean:
- »  -rm *.o kernel
+	-rm -f *.o $(OUTPUT) bochsout.txt
 
 link:
- »  ld $(LDFLAGS) -o kernel $(SOURCES)
+	ld $(LDFLAGS) -o $(OUTPUT) $(SOURCES)
 
 .s.o:
- »  nasm $(ASFLAGS) $< 
+	nasm $(ASFLAGS) $< 
 
