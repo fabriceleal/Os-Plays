@@ -8,7 +8,7 @@
  *
  * @section DESCRIPTION
  * 
- * < ... goes here ... >
+ * Functions for writing on the screen.
  *
  */
 
@@ -25,5 +25,13 @@
 void monitor_put(char c);
 void monitor_clear();
 void monitor_write(char *c);
+
+
+void monitor_write_hex(u32int value);
+void monitor_write_dec(u32int value);
+
+// TODO: This needs to be done, obviously this is not the signature of the printf function
+void printf();
+
 
 #endif // ___VAMI_MONITOR

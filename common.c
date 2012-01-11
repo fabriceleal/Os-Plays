@@ -46,20 +46,3 @@ void memset(void * origin, u32int length, u32int new_value)
    return;
 }
 
-void monitor_write_hex(u32int n)
-{
-   // TODO: ...
-	return;
-}
-
-void monitor_write_dec(u32int n)
-{
-   // TODO: ...
-	return;
-} 
-
-void printf(){
-	// Refer to vsprintf at the linux0.1 code
-	// TODO: ...
-	return;
-}

@@ -8,7 +8,7 @@
  *
  * @section DESCRIPTION
  * 
- * < ... goes here ... >
+ * Some base typedefs and functions to write to ports and write to memory.
  *
  */
 
@@ -38,12 +38,6 @@ u16int inw(u16int port);
 
 void memcpy(void * origin, void * destiny, u32int length);
 void memset(void * origin, u32int length, u32int new_value);
-
-void monitor_write_hex(u32int value);
-void monitor_write_dec(u32int value);
-
-// TODO: This needs to be done, obviously this is not the signature of the printf function
-void printf();
 
 #endif // ___VAMI_COMMON
 

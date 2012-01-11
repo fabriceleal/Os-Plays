@@ -153,3 +153,22 @@ void monitor_write(char *c)
        monitor_put(c[i++]);
    }
 }
+
+
+void monitor_write_hex(u32int n)
+{
+   // TODO: ...
+	return;
+}
+
+void monitor_write_dec(u32int n)
+{
+   // TODO: ...
+	return;
+} 
+
+void printf(){
+	// Refer to vsprintf at the linux0.1 code
+	// TODO: ...
+	return;
+}
