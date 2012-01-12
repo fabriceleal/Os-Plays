@@ -2,6 +2,7 @@
 // Made for JamesM's tutorials
 
 #include "monitor.h"
+#include "timer.h"
 
 int main(struct multiboot *mboot_ptr)
 {
@@ -12,6 +13,8 @@ int main(struct multiboot *mboot_ptr)
 	
 	asm volatile ("int $0x3");
    asm volatile ("int $0x4");
+
+	init_timer(50);
 
 	return 0xDEADBABA;
 }
