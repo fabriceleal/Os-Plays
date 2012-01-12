@@ -14,6 +14,7 @@
 
 #include "common.h"
 #include "descriptor_tables.h"
+#include "isr.h"
 
 // Lets us access our ASM functions from our C code.
 extern void gdt_flush(u32int);
@@ -41,6 +42,8 @@ void init_descriptor_tables()
    // Initialise the global descriptor table and the interrupt descriptor table.
    init_gdt();
 	init_idt();
+	// Nullify all interrupt handlers
+	memset(&interrupt_handlers, 0, sizeof(isr_t)*256);
 }
 
 static void init_gdt()

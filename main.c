@@ -14,6 +14,8 @@ int main(struct multiboot *mboot_ptr)
 	asm volatile ("int $0x3");
    asm volatile ("int $0x4");
 
+	// You got to re-enable interrupts
+   asm volatile("sti");
 	init_timer(50);
 
 	return 0xDEADBABA;

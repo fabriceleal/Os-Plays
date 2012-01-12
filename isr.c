@@ -24,7 +24,6 @@ void isr_handler(registers_t regs)
    monitor_put('\n');
 }
 
-isr_t interrupt_handlers[256];
 
 // This gets called from our ASM interrupt handler stub.
 void irq_handler(registers_t regs)
