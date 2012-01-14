@@ -39,5 +39,12 @@ u16int inw(u16int port);
 void memcpy(void * origin, void * destiny, u32int length);
 void memset(void * origin, u32int length, u8int new_value);
 
+
+#define PANIC(msg) panic(msg, __FILE__, __LINE__);
+#define ASSERT(b) ((b) ? (void)0 : panic_assert(__FILE__, __LINE__, #b))
+
+extern void panic(const char *message, const char *file, u32int line);
+extern void panic_assert(const char *file, u32int line, const char *desc);
+
 #endif // ___VAMI_COMMON
 
