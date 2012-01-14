@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
 
-./update_image.sh
-./run_bochs.sh &
+`./update_image.sh`;
+`./run_bochs.sh &`;
 
