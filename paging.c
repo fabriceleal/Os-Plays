@@ -138,6 +138,15 @@ void initialise_paging()
    memset(kernel_directory, 0, sizeof(page_directory_t));
    current_directory = kernel_directory;
 
+   // Map some pages in the kernel heap area.
+   // Here we call get_page but not alloc_frame. This causes page_table_t's
+   // to be created where necessary. We can't allocate frames yet because they
+   // they need to be identity mapped first below, and yet we can't increase
+   // placement_address between identity mapping and enabling the heap!
+   int i = 0;
+   for (i = KHEAP_START; i < KHEAP_START+KHEAP_INITIAL_SIZE; i += 0x1000)
+       get_page(i, 1, kernel_directory); 
+
    // We need to identity map (phys addr = virt addr) from
    // 0x0 to the end of used memory, so we can access this
    // transparently, as if paging wasn't enabled.
@@ -152,20 +161,6 @@ void initialise_paging()
        alloc_frame( get_page(i, 1, kernel_directory), 0, 0);
        i += 0x1000;
    }
-   // Before we enable paging, we must register our page fault handler.
-   register_interrupt_handler(14, page_fault);
-
-   // Now, enable paging!
-   switch_page_directory(kernel_directory);
-
-   // Map some pages in the kernel heap area.
-   // Here we call get_page but not alloc_frame. This causes page_table_t's
-   // to be created where necessary. We can't allocate frames yet because they
-   // they need to be identity mapped first below, and yet we can't increase
-   // placement_address between identity mapping and enabling the heap!
-   int i = 0;
-   for (i = KHEAP_START; i < KHEAP_START+KHEAP_INITIAL_SIZE; i += 0x1000)
-       get_page(i, 1, kernel_directory); 
 
    // Now allocate those pages we mapped earlier.
    for (i = KHEAP_START; i < KHEAP_START+KHEAP_INITIAL_SIZE; i += 0x1000)
