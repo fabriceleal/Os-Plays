@@ -154,6 +154,7 @@ void initialise_paging()
    // inside the loop body we actually change placement_address
    // by calling kmalloc(). A while loop causes this to be
    // computed on-the-fly rather than once at the start.
+	i = 0;
    while (i < placement_address)
    {
        // Kernel code is readable but not writeable from userspace.
