@@ -16,6 +16,8 @@
 #ifndef ___VAMI_KHEAP
 #define ___VAMI_KHEAP
 
+#include "ordered_array.h"
+
 u32int kmalloc(u32int sz); // vanilla (normal).
 u32int kmalloc_a(u32int sz);  // page aligned.
 u32int kmalloc_p(u32int sz, u32int *phys); // returns a physical address.

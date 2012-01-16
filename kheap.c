@@ -70,8 +70,8 @@ u32int kmalloc_ap(u32int sz, u32int *phys)
 }
 
 // *** Heap functions ***
-
-heap_t *kheap; 
+extern page_directory_t *kernel_directory;
+heap_t *kheap = 0; 
 
 static void expand(u32int new_size, heap_t *heap)
 {
