@@ -12,7 +12,8 @@
  *
  */
 
-#include "common.h"
+//#include "common.h"
+#include "paging.h"
 #include "kheap.h"
 
 // end is defined in the linker script.
@@ -71,6 +72,59 @@ u32int kmalloc_ap(u32int sz, u32int *phys)
 // *** Heap functions ***
 
 heap_t *kheap; 
+
+static void expand(u32int new_size, heap_t *heap)
+{
+	// Sanity check.
+	ASSERT(new_size > heap->end_address - heap->start_address);
+	// Get the nearest following page boundary.
+	if (new_size&0xFFFFF000 != 0)
+	{
+		new_size &= 0xFFFFF000;
+		new_size += 0x1000;
+	}
+	// Make sure we are not overreaching ourselves.
+	ASSERT(heap->start_address+new_size <= heap->max_address);
+
+	// This should always be on a page boundary.
+	u32int old_size = heap->end_address-heap->start_address;
+	u32int i = old_size;
+	while (i < new_size)
+	{
+		alloc_frame(
+				get_page(heap->start_address+i, 1, kernel_directory),
+				(heap->supervisor)?1:0, 
+				(heap->readonly)?0:1);
+		i += 0x1000 /* page size */;
+	}
+	heap->end_address = heap->start_address+new_size;
+} 
+
+static u32int contract(u32int new_size, heap_t *heap)
+{
+	// Sanity check.
+	ASSERT(new_size < heap->end_address-heap->start_address);
+	
+	// Get the nearest following page boundary.
+	if (new_size&0x1000)
+	{
+		new_size &= 0x1000;
+		new_size += 0x1000;
+	}
+	// Don't contract too far!
+	if (new_size < HEAP_MIN_SIZE)
+	new_size = HEAP_MIN_SIZE;
+	u32int old_size = heap->end_address-heap->start_address;
+	u32int i = old_size - 0x1000;
+	while (new_size < i)
+	{
+		free_frame(
+				get_page(heap->start_address+i, 0, kernel_directory));
+		i -= 0x1000;
+	}
+	heap->end_address = heap->start_address + new_size;
+	return new_size;
+} 
 
 static s32int find_smallest_hole(u32int size, u8int page_align, heap_t *heap)
 {
@@ -159,59 +213,6 @@ heap_t *create_heap(u32int start, u32int end_addr, u32int max, u8int supervisor,
 	insert_ordered_array((void*)hole, &heap->index);
 
 	return heap;
-} 
-
-static void expand(u32int new_size, heap_t *heap)
-{
-	// Sanity check.
-	ASSERT(new_size > heap->end_address - heap->start_address);
-	// Get the nearest following page boundary.
-	if (new_size&0xFFFFF000 != 0)
-	{
-		new_size &= 0xFFFFF000;
-		new_size += 0x1000;
-	}
-	// Make sure we are not overreaching ourselves.
-	ASSERT(heap->start_address+new_size <= heap->max_address);
-
-	// This should always be on a page boundary.
-	u32int old_size = heap->end_address-heap->start_address;
-	u32int i = old_size;
-	while (i < new_size)
-	{
-		alloc_frame(
-				get_page(heap->start_address+i, 1, kernel_directory),
-				(heap->supervisor)?1:0, 
-				(heap->readonly)?0:1);
-		i += 0x1000 /* page size */;
-	}
-	heap->end_address = heap->start_address+new_size;
-} 
-
-static u32int contract(u32int new_size, heap_t *heap)
-{
-	// Sanity check.
-	ASSERT(new_size < heap->end_address-heap->start_address);
-	
-	// Get the nearest following page boundary.
-	if (new_size&0x1000)
-	{
-		new_size &= 0x1000;
-		new_size += 0x1000;
-	}
-	// Don't contract too far!
-	if (new_size < HEAP_MIN_SIZE)
-	new_size = HEAP_MIN_SIZE;
-	u32int old_size = heap->end_address-heap->start_address;
-	u32int i = old_size - 0x1000;
-	while (new_size < i)
-	{
-		free_frame(
-				get_page(heap->start_address+i, 0, kernel_directory));
-		i -= 0x1000;
-	}
-	heap->end_address = heap->start_address + new_size;
-	return new_size;
 } 
 
 void *alloc(u32int size, u8int page_align, heap_t *heap)
