@@ -20,12 +20,10 @@ int main(struct multiboot *mboot_ptr)
    //asm volatile("sti");
 	//init_timer(50);
 
-	u32int a = kmalloc(8);
-
 	initialise_paging();
 	monitor_write("Hello, paging world!\n");
 
-
+	u32int a = kmalloc(8);
 	u32int b = kmalloc(8);
 	u32int c = kmalloc(8);
 	monitor_write("a: ");
