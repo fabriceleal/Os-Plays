@@ -20,53 +20,54 @@
 extern u32int end;
 u32int placement_address = (u32int)&end;
 
-u32int kmalloc(u32int sz)
+u32int kmalloc_int(u32int sz, int align, u32int *phys)
 {
-	u32int tmp = placement_address;
-	placement_address += sz;
-	return tmp;
+    if (kheap != 0)
+    {
+        void *addr = alloc(sz, (u8int)align, kheap);
+        if (phys != 0)
+        {
+            page_t *page = get_page((u32int)addr, 0, kernel_directory);
+            *phys = page->frame*0x1000 + (u32int)addr&0xFFF;
+        }
+        return (u32int)addr;
+    }
+    else
+    {
+        if (align == 1 && (placement_address & 0xFFFFF000) )
+        {
+            // Align the placement address;
+            placement_address &= 0xFFFFF000;
+            placement_address += 0x1000;
+        }
+        if (phys)
+        {
+            *phys = placement_address;
+        }
+        u32int tmp = placement_address;
+        placement_address += sz;
+        return tmp;
+    }
 }
 
 u32int kmalloc_a(u32int sz)
 {
-	if(placement_address & 0xFFFFF000)
-	{
-   	placement_address &= 0xFFFFF000;
-   	placement_address += 0x1000;
-	}
-	// begin kmalloc
-	u32int tmp = placement_address;
-	placement_address += sz;
-	return tmp;
-	// end kmalloc
+    return kmalloc_int(sz, 1, 0);
 }
 
 u32int kmalloc_p(u32int sz, u32int *phys)
 {
-	if (phys)
-	{
-		*phys = placement_address;
-	}
-	u32int tmp = placement_address;
-	placement_address += sz;
-	return tmp;
+    return kmalloc_int(sz, 0, phys);
 }
 
 u32int kmalloc_ap(u32int sz, u32int *phys)
 {
-	if (placement_address & 0xFFFFF000) // If the address is not already page-aligned
-	{
-		// Align it.
-		placement_address &= 0xFFFFF000;
-		placement_address += 0x1000;
-	}
-	if (phys)
-	{
-		*phys = placement_address;
-	}
-	u32int tmp = placement_address;
-	placement_address += sz;
-	return tmp;
+    return kmalloc_int(sz, 1, phys);
+}
+
+u32int kmalloc(u32int sz)
+{
+    return kmalloc_int(sz, 0, 0);
 }
 
 // *** Heap functions ***
