@@ -2,7 +2,9 @@
 // Made for JamesM's tutorials
 
 #include "monitor.h"
+#include "descriptor_tables.h"
 #include "timer.h"
+#include "paging.h"
 
 int main(struct multiboot *mboot_ptr)
 {
