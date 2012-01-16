@@ -12,9 +12,9 @@
  *
  */
 
-#include "common.h"
-#include "kheap.h"
+//#include "common.h"
 #include "paging.h"
+#include "kheap.h"
 
 // The kernel's page directory
 page_directory_t *kernel_directory=0;
