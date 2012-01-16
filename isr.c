@@ -52,6 +52,13 @@ void irq_handler(registers_t regs)
        isr_t handler = interrupt_handlers[regs.int_no];
        handler(regs);
    }
+	else
+	{
+		//TODO: Unhandled irq, what to do ???
+		monitor_write("unhandled irq: ");
+		monitor_write_dec(regs.int_no);
+		monitor_put('\n');
+	}
 }
 
 void register_interrupt_handler(u8int n, isr_t handler)

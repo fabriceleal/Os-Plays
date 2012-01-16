@@ -28,6 +28,8 @@ static void gdt_set_gate(s32int,u32int,u32int,u8int,u8int);
 static void init_idt();
 static void idt_set_gate(u8int,u32int,u16int,u8int);
 
+extern isr_t interrupt_handlers[];
+
 // At least 5, the last one NULL, or bad things will happen
 gdt_entry_t gdt_entries[5]; 
 gdt_ptr_t   gdt_ptr; 

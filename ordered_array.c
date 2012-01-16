@@ -36,11 +36,17 @@ ordered_array_t create_ordered_array(u32int max_size, lessthan_predicate_t less_
 ordered_array_t place_ordered_array(void *addr, u32int max_size, lessthan_predicate_t less_than)
 {
    ordered_array_t to_ret;
+	monitor_write("before array = ... \n");
    to_ret.array = (type_t*)addr;
+	monitor_write("after array = ... \n");
    memset(to_ret.array, 0, max_size*sizeof(type_t));
+	monitor_write("after memset = ... \n");
    to_ret.size = 0;
+	monitor_write("after size = ... \n");
    to_ret.max_size = max_size;
+	monitor_write("after maxsize = ... \n");
    to_ret.less_than = less_than;
+	monitor_write("after less than = ... \n");
    return to_ret;
 }
 

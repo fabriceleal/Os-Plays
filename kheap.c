@@ -182,13 +182,16 @@ static s8int header_t_less_than(void*a, void *b)
 heap_t *create_heap(u32int start, u32int end_addr, u32int max, u8int supervisor, u8int readonly)
 {
 	heap_t *heap = (heap_t*)kmalloc(sizeof(heap_t));
+	monitor_write("After kmalloc\n");
 
 	// All our assumptions are made on startAddress and endAddress being page-aligned.
 	ASSERT(start%0x1000 == 0);
 	ASSERT(end_addr%0x1000 == 0);
 
+	monitor_write("Before init index\n");
 	// Initialise the index.
 	heap->index = place_ordered_array( (void*)start, HEAP_INDEX_SIZE, &header_t_less_than);
+	monitor_write("After init index\n");
 
 	// Shift the start address forward to resemble where we can start putting data.
 	start += sizeof(type_t)*HEAP_INDEX_SIZE;

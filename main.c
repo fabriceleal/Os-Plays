@@ -9,21 +9,11 @@
 int main(struct multiboot *mboot_ptr)
 {
 	init_descriptor_tables();
-
 	monitor_clear();
-	monitor_write("Hello, world!\n"); 
-	
-	//asm volatile ("int $0x3");
-   //asm volatile ("int $0x4");
-
-	// You got to re-enable interrupts
-   //asm volatile("sti");
-	//init_timer(50);
-
+	monitor_write("Hello, world!\n");;
+	u32int a = kmalloc(8);
 	initialise_paging();
 	monitor_write("Hello, paging world!\n");
-
-	u32int a = kmalloc(8);
 	u32int b = kmalloc(8);
 	u32int c = kmalloc(8);
 	monitor_write("a: ");
