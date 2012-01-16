@@ -18,12 +18,6 @@
 
 #include "ordered_array.h"
 
-u32int kmalloc(u32int sz); // vanilla (normal).
-u32int kmalloc_a(u32int sz);  // page aligned.
-u32int kmalloc_p(u32int sz, u32int *phys); // returns a physical address.
-u32int kmalloc_ap(u32int sz, u32int *phys); // page aligned and returns a physical address.
-void kfree(void *p);
-
 #define KHEAP_START         	0xC0000000
 #define KHEAP_INITIAL_SIZE  	0x00100000
 #define HEAP_INDEX_SIZE   		0x00020000
@@ -71,5 +65,13 @@ void *alloc(u32int size, u8int page_align, heap_t *heap);
   Releases a block allocated with 'alloc'.
 **/
 void free(void *p, heap_t *heap); 
+
+// ---
+
+u32int kmalloc(u32int sz); // vanilla (normal).
+u32int kmalloc_a(u32int sz);  // page aligned.
+u32int kmalloc_p(u32int sz, u32int *phys); // returns a physical address.
+u32int kmalloc_ap(u32int sz, u32int *phys); // page aligned and returns a physical address.
+void kfree(void *p);
 
 #endif // ___VAMI_KHEAP
