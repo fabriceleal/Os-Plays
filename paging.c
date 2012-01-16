@@ -120,6 +120,8 @@ void free_frame(page_t *page)
    }
 } 
 
+extern heap_t *kheap; 
+
 
 void initialise_paging()
 {
@@ -155,6 +157,28 @@ void initialise_paging()
 
    // Now, enable paging!
    switch_page_directory(kernel_directory);
+
+   // Map some pages in the kernel heap area.
+   // Here we call get_page but not alloc_frame. This causes page_table_t's
+   // to be created where necessary. We can't allocate frames yet because they
+   // they need to be identity mapped first below, and yet we can't increase
+   // placement_address between identity mapping and enabling the heap!
+   int i = 0;
+   for (i = KHEAP_START; i < KHEAP_START+KHEAP_INITIAL_SIZE; i += 0x1000)
+       get_page(i, 1, kernel_directory); 
+
+   // Now allocate those pages we mapped earlier.
+   for (i = KHEAP_START; i < KHEAP_START+KHEAP_INITIAL_SIZE; i += 0x1000)
+       alloc_frame( get_page(i, 1, kernel_directory), 0, 0);
+
+   // Before we enable paging, we must register our page fault handler.
+   register_interrupt_handler(14, page_fault);
+
+   // Now, enable paging!
+   switch_page_directory(kernel_directory);
+
+   // Initialise the kernel heap.
+   kheap = create_heap(KHEAP_START, KHEAP_START+KHEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0); 
 }
 
 void switch_page_directory(page_directory_t *dir)
@@ -216,3 +240,4 @@ void page_fault(registers_t regs)
    monitor_write("\n");
    PANIC("Page fault");
 } 
+
