@@ -95,7 +95,7 @@ void alloc_frame(page_t *page, int is_kernel, int is_writeable)
        if (idx == (u32int)-1)
        {
            // PANIC is just a macro that prints a message to the screen then hits an infinite loop.
-           PANIC("No free frames!");
+           //PANIC("No free frames!");
        }
        set_frame(idx*0x1000); // this frame is now ours!
        page->present = 1; // Mark it as present.

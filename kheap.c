@@ -19,6 +19,8 @@
 // end is defined in the linker script.
 extern u32int end;
 u32int placement_address = (u32int)&end;
+extern page_directory_t *kernel_directory;
+heap_t *kheap = 0; 
 
 u32int kmalloc_int(u32int sz, int align, u32int *phys)
 {
@@ -71,8 +73,6 @@ u32int kmalloc(u32int sz)
 }
 
 // *** Heap functions ***
-extern page_directory_t *kernel_directory;
-heap_t *kheap = 0; 
 
 static void expand(u32int new_size, heap_t *heap)
 {
