@@ -22,6 +22,7 @@ u32int kmalloc(u32int sz); // vanilla (normal).
 u32int kmalloc_a(u32int sz);  // page aligned.
 u32int kmalloc_p(u32int sz, u32int *phys); // returns a physical address.
 u32int kmalloc_ap(u32int sz, u32int *phys); // page aligned and returns a physical address.
+void kfree(void *p);
 
 #define KHEAP_START         	0xC0000000
 #define KHEAP_INITIAL_SIZE  	0x00100000
