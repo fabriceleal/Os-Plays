@@ -13,8 +13,8 @@
  */
 
 //#include "common.h"
-#include "paging.h"
 #include "kheap.h"
+#include "paging.h"
 
 // end is defined in the linker script.
 extern u32int end;
