@@ -13,8 +13,8 @@
  */
 
 #include "dummy_streaming.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 
 /*
 	Inits the buffer structure.
