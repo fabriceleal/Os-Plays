@@ -62,16 +62,19 @@ int write(buffer * obj, const char * write, const unsigned int len)
 			return BUFFER_NO_MEM;
 		}
 
-		LOG_S("new ptr alloc'ed\n");
+		LOG("new ptr alloc'ed, size = %d\n", new_size);
 		
 		if(obj->buffer != NULL)
 		{
+			LOG_S("copying old data\n");
+
 			// Copy old data to new ptr
 			memcpy( new_ptr, obj->buffer, obj->len );
 
 			// Free old ptr
 			free( obj->buffer );
 		}
+		LOG_S("updateing struct\n");
 
 		// Update structure
 		obj->buffer = new_ptr;
@@ -80,9 +83,13 @@ int write(buffer * obj, const char * write, const unsigned int len)
 		obj->len = obj->buffer_size = new_size;
 	}
 
+	LOG("appending new data (%x, %d, %x) (%d)\n", obj->buffer, current_end, obj->buffer + current_end, len);
+
 	// Append new data
 	memcpy( obj->buffer + current_end, write, len);
 
+	LOG_S("end copying\n");
+	
 	return BUFFER_SUCCESS;
 }
 

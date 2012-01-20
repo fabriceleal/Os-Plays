@@ -22,10 +22,23 @@
 
 int dir_count(const char * directory)
 {
+	LOG("Entering counting sub-dirs for %s\n", directory);
 	// Count sub-directories in a given directory
 	int ret = 0;
 	DIR *dir = opendir(directory);
-	while( readdir(dir) != NULL && ++ret);
+	struct dirent * dp = NULL;
+	if(dir == NULL)
+	{
+		LOG_S("[***]ERROR opening directory!\n");
+		return 0;
+	}
+	while( (dp = readdir(dir)) != NULL){
+		// Exclude the entries '.' and '..'
+		if (strcmp(dp->d_name, ".") && strcmp(dp->d_name, ".."))
+		{
+			++ret;
+		}
+	}
 	close(dir);
 	LOG( "Counted %d dirs for directory %s\n", ret, directory );
 	return ret;
@@ -38,15 +51,17 @@ int dir_count(const char * directory)
 int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 {
 	struct dirent *dp = NULL;
+
+	LOG("[enter]Ptr is %x\n", dir_st);
+	LOG("[enter]DirName is %s\n", dir_name);
 	
 	// List subdirs and files	
 	// Get count; alocate accordingly
 	int dir_c = dir_count( dir_name );
 
-	LOG("[enter]Ptr is %x\n", dir_st);
-
 	dir_st->subdirs_count = dir_c;
 
+	LOG_S("Parsing directories\n");
 	if( dir_c == 0 )
 	{
 		dir_st->subdirs = NULL;
@@ -59,6 +74,9 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 		int i = 0;
 		while( (dp = readdir(dir)) != NULL )
 		{
+			if(!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
+				continue;
+			
 			// Allocate and call recursively (for each dir)
 			dummy_dir * new_child = dir_st->subdirs + i++;
 
@@ -67,10 +85,18 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 
 			// Init name here, its easier than decomposing the full path in the recursive call.
 			init( &new_child->name );
-			write( &new_child->name, dp->d_name, strlen(dp->d_name)+1 );
+
+			LOG("Before adding %s\n", dp->d_name);
+			write( &new_child->name, dp->d_name, strlen(dp->d_name) + 1 );
 	
-			LOG( "Cat'ed dir is = %s\n", sprintf("%s%s", dir_name , dp->d_name ) );
-			work_directory( sprintf("%s%s", dir_name , dp->d_name ), new_child, root_name );		
+
+			char * full_path_dest = malloc(sizeof(char) * (2 + strlen(dir_name) + strlen(dp->d_name) ));
+			sprintf(full_path_dest, "%s/%s", dir_name, dp->d_name);
+
+			LOG( "Cat'ed dir is = %s\n", full_path_dest );
+	
+			// Call recursively
+			work_directory( full_path_dest, new_child, root_name );		
 		}
 		closedir(dir);
 	}	
@@ -135,7 +161,9 @@ int generate_dummy_fs(char* model_root_dir, char * destiny_file )
 
 
 	// Free memory
-	free_dir(fs); free(fs);
+	destroy( &fs->name );
+	free_dir(fs);
+	free(fs);
 	free(buf);
 
 	return GEN_FS_SUCCESS ;
