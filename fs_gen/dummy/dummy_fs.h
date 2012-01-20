@@ -1,0 +1,38 @@
+/**
+ * @file dummy_fs.h
+ * @author Fabrice Leal <fabrice [dot]leal[dot]ch[at]gmail[dot]com>
+ *
+ * @section LICENSE
+ *
+ * < ... goes here ... >
+ *
+ * @section DESCRIPTION
+ * 
+ * < ... goes here ... >
+ *
+ */
+
+
+#ifndef ___VAMI_DUMMY_FS
+#define ___VAMI_DUMMY_FS
+
+#include "dummy_streaming.h"
+
+typedef struct dummy_file {
+	int offset;
+	buffer name;
+} dummy_file;
+
+
+typedef struct dummy_dir {
+	buffer name;
+
+	int subdirs_count;
+	struct dummy_dir* subdirs;
+
+	int files_count;
+	dummy_file* files;
+} dummy_dir;
+
+
+#endif // ___VAMI_DUMMY_FS
