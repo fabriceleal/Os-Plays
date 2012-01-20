@@ -15,6 +15,6 @@ int main(int argc, char * argv[])
 	}
 
 
-	tests();	
+	//tests();	
 	return generate_dummy_fs( argv[1], argv[2] );
 }

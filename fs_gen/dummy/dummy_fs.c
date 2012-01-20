@@ -25,7 +25,7 @@ int dir_count(const char * directory)
 	// Count sub-directories in a given directory
 	int ret = 0;
 	DIR *dir = opendir(directory);
-	while( readdir(dir) != NULL || ++ret);
+	while( readdir(dir) != NULL && ++ret);
 	close(dir);
 	LOG( "Counted %d dirs for directory %s\n", ret, directory );
 	return ret;
@@ -38,30 +38,42 @@ int dir_count(const char * directory)
 int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 {
 	struct dirent *dp = NULL;
-	DIR *dir = opendir(dir_name);
 	
 	// List subdirs and files	
 	// Get count; alocate accordingly
 	int dir_c = dir_count( dir_name );
 
+	LOG("[enter]Ptr is %x\n", dir_st);
+
 	dir_st->subdirs_count = dir_c;
-	dir_st->subdirs = malloc(sizeof(dummy_dir) * dir_c);
 
-	int i = 0;
-	while( (dp = readdir(dir)) != NULL )
+	if( dir_c == 0 )
 	{
-		// Allocate and call recursively (for each dir)
-		dummy_dir * new_child = (dir_st->subdirs + i++);
-
-		// Init name here, its easier than decomposing the full path in the recursive call.
-		init( &new_child->name );
-		write( &new_child->name, dp->d_name, strlen(dp->d_name)+1 );
-	
-		LOG( "cat'ed dir is = %s%s\n", dir_name, dp->d_name );
-		work_directory( strcat( dir_name , dp->d_name ), new_child, root_name );		
+		dir_st->subdirs = NULL;
 	}
+	else
+	{
+		dir_st->subdirs = malloc(sizeof(dummy_dir) * dir_c);
+
+		DIR *dir = opendir(dir_name);
+		int i = 0;
+		while( (dp = readdir(dir)) != NULL )
+		{
+			// Allocate and call recursively (for each dir)
+			dummy_dir * new_child = dir_st->subdirs + i++;
+
+			LOG("Ptr is %x\n" , new_child);
+			LOG("Working directory %s\n", dp->d_name);
+
+			// Init name here, its easier than decomposing the full path in the recursive call.
+			init( &new_child->name );
+			write( &new_child->name, dp->d_name, strlen(dp->d_name)+1 );
 	
-	closedir(dir);
+			LOG( "Cat'ed dir is = %s\n", sprintf("%s%s", dir_name , dp->d_name ) );
+			work_directory( sprintf("%s%s", dir_name , dp->d_name ), new_child, root_name );		
+		}
+		closedir(dir);
+	}	
 	return WRKDIR_SUCCESS;
 }
 
@@ -111,7 +123,7 @@ int generate_dummy_fs(char* model_root_dir, char * destiny_file )
 	write( &fs->name, "", 1); // Empty string {'\0'}
 
 	// Walk through dirs, build dir and file structure
-	//work_directory( model_root_dir , fs, model_root_dir );
+	work_directory( model_root_dir , fs, model_root_dir );
 
 	// TODO: Write into buffer
 

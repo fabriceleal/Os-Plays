@@ -43,8 +43,6 @@ int write(buffer * obj, const char * write, const unsigned int len)
 	{
 		return BUFFER_NULL_PTR;
 	}
-	
-	LOG( "Length = %d\n" , obj->len );
 
 	if( len == 0 || write == NULL )
 	{
@@ -116,7 +114,9 @@ int tests()
 	int i = 0;
 	buffer * test = malloc(sizeof(buffer));
 	init(test);
-	write(test, "hello", 6);
+	write(test, "hello", 5); // do not include \0
+	write(test, " ", 1); // do not include \0
+	write(test, "world", 6);
 
 	// TODO: Pretty print, put this on function
 	printf("\n");
