@@ -44,8 +44,6 @@ int dir_count(const char * directory)
 	return ret;
 }
 
-
-
 #define WRKDIR_SUCCESS 0
 
 int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
@@ -91,7 +89,7 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 	
 
 			char * full_path_dest = malloc(sizeof(char) * (2 + strlen(dir_name) + strlen(dp->d_name) ));
-			sprintf(full_path_dest, "%s/%s", dir_name, dp->d_name);
+			sprintf(full_path_dest, "%s/%s", dir_name, dp->d_name); // FIXME: Do *real* path concat function
 
 			LOG( "Cat'ed dir is = %s\n", full_path_dest );
 	
