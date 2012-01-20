@@ -43,6 +43,8 @@ int write(buffer * obj, const char * write, const unsigned int len)
 	{
 		return BUFFER_NULL_PTR;
 	}
+	
+	LOG( "Length = %d\n" , obj->len );
 
 	if( len == 0 || write == NULL )
 	{
@@ -61,15 +63,23 @@ int write(buffer * obj, const char * write, const unsigned int len)
 		{
 			return BUFFER_NO_MEM;
 		}
-		
-		// Copy data to new ptr
-		memcpy( new_ptr, obj->buffer, obj->len );
 
-		// Free old ptr
-		free( obj->buffer );
+		LOG_S("new ptr alloc'ed\n");
 		
+		if(obj->buffer != NULL)
+		{
+			// Copy old data to new ptr
+			memcpy( new_ptr, obj->buffer, obj->len );
+
+			// Free old ptr
+			free( obj->buffer );
+
+			current_end = 0;
+		}
+
 		// Update structure
 		obj->buffer = new_ptr;
+
 		// In this implementation, buffer_size == data_len
 		obj->len = obj->buffer_size = new_size;
 	}

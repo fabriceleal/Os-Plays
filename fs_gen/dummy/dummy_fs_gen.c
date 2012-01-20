@@ -7,5 +7,12 @@ int main(int argc, char * argv[])
 {
 	printf("Hello from Dummy File System Generator\n");
 
-	return 0;
+	// Receive model path from command line args
+	if (argc != 3)
+	{
+		printf("Usage: dummy_fs <model_path> <output_file>\n");
+		return 1;
+	}
+
+	return generate_dummy_fs( argv[1], argv[2] );
 }

@@ -18,45 +18,6 @@
 #include "string.h"
 #include "dirent.h"
 
-#define LOG(format,...) printf(format, __VA_ARGS__ )
-
-#define GEN_FS_SUCCESS 0
-#define GEN_FS_MEM 1
-
-/*
-	Generates a dummy fs using a *real* directory as a *model*
-*/
-int generate_dummy_fs(char* model_root_dir, char * destiny_file )
-{
-	buffer * buf = malloc(sizeof(buffer));
-	if(buf == NULL)
-	{
-		return GEN_FS_MEM;
-	}
-	
-	dummy_dir * fs = malloc(sizeof(dummy_dir)); // fs is the root dir
-
-	init( &fs->name );
-	write( &fs->name, "", 1); // Empty string {'\0'}
-
-	// Walk through dirs, build dir and file structure
-	work_directory( model_root_dir , fs, model_root_dir );
-
-	// TODO: Write into buffer
-
-
-	// TODO: Walk through all files in fs, read content and output to buffer
-
-
-	// TODO: Write buffer to destiny file ...	
-
-
-	// Free memory
-	free_dir(fs); free(fs);
-	free(buf);
-
-	return GEN_FS_SUCCESS ;
-}
 
 
 int dir_count(const char * directory)
@@ -69,6 +30,8 @@ int dir_count(const char * directory)
 	LOG( "Counted %d dirs for directory %s\n", ret, directory );
 	return ret;
 }
+
+
 
 #define WRKDIR_SUCCESS 0
 
@@ -102,6 +65,8 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 	return WRKDIR_SUCCESS;
 }
 
+
+
 #define WRKFL_SUCCESS 0
 
 int work_file(char * file_name, dummy_file * file, buffer * final_fs)
@@ -115,7 +80,6 @@ int work_file(char * file_name, dummy_file * file, buffer * final_fs)
 	return WRKFL_SUCCESS;
 }
 
-
 int free_dir(dummy_dir * dir)
 {
 	// TODO: Destroy all buffers of children first (call recursively for dirs)
@@ -124,3 +88,44 @@ int free_dir(dummy_dir * dir)
 
 	return 0;
 }
+
+
+
+#define GEN_FS_SUCCESS 0
+#define GEN_FS_MEM 1
+
+/*
+	Generates a dummy fs using a *real* directory as a *model*
+*/
+int generate_dummy_fs(char* model_root_dir, char * destiny_file )
+{
+	buffer * buf = malloc(sizeof(buffer));
+	if(buf == NULL)
+	{
+		return GEN_FS_MEM;
+	}
+	
+	dummy_dir * fs = malloc(sizeof(dummy_dir)); // fs is the root dir
+
+	init( &fs->name );
+	write( &fs->name, "", 1); // Empty string {'\0'}
+
+	// Walk through dirs, build dir and file structure
+	//work_directory( model_root_dir , fs, model_root_dir );
+
+	// TODO: Write into buffer
+
+
+	// TODO: Walk through all files in fs, read content and output to buffer
+
+
+	// TODO: Write buffer to destiny file ...	
+
+
+	// Free memory
+	free_dir(fs); free(fs);
+	free(buf);
+
+	return GEN_FS_SUCCESS ;
+}
+

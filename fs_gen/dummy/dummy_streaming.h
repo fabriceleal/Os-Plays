@@ -21,6 +21,9 @@
 #define BUFFER_INVALID_PARAMETER 2
 #define BUFFER_NO_MEM 3
 
+#define LOG_S(format) printf(format)
+#define LOG(format,...) printf(format, __VA_ARGS__ )
+
 typedef struct {	
 	int len;
 	int buffer_size;
