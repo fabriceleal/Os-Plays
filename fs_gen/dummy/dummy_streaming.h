@@ -35,4 +35,6 @@ int init(buffer * obj);
 int write(buffer * dest, const char * write, const unsigned int len);
 int destroy(buffer * obj);
 
+int tests();
+
 #endif // ___VAMI_DUMMY_STREAMING

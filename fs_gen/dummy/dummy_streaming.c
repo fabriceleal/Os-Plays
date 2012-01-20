@@ -26,8 +26,8 @@ int init(buffer * obj)
 		return BUFFER_NULL_PTR;
 	}
 
-	obj->len = -1;
-	obj->buffer_size = -1;
+	obj->len = 0;
+	obj->buffer_size = 0;
 	obj->buffer = NULL;
 
 	return BUFFER_SUCCESS;
@@ -38,7 +38,7 @@ int init(buffer * obj)
 */
 int write(buffer * obj, const char * write, const unsigned int len)
 {
-	int current_end = -1;
+	int current_end = 0;
 	if(obj == NULL)
 	{
 		return BUFFER_NULL_PTR;
@@ -73,8 +73,6 @@ int write(buffer * obj, const char * write, const unsigned int len)
 
 			// Free old ptr
 			free( obj->buffer );
-
-			current_end = 0;
 		}
 
 		// Update structure
@@ -111,4 +109,25 @@ int destroy(buffer * obj)
 	obj->len = 0;
 
 	return BUFFER_SUCCESS;
+}
+
+int tests()
+{
+	int i = 0;
+	buffer * test = malloc(sizeof(buffer));
+	init(test);
+	write(test, "hello", 6);
+
+	// TODO: Pretty print, put this on function
+	printf("\n");
+	printf("Buffer = %x\n", test->buffer);
+	printf("Buffer-Size = %x\n", test->buffer_size);
+	printf("Data-Len = %x\n", test->len);
+	for(i = 0; i < test->len; ++i)
+	{
+		printf("Offset %d, value %x, char %c\n", i, test->buffer[i], test->buffer[i]);
+	}
+	printf("\n");
+
+	return 0;
 }
