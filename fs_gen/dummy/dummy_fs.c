@@ -239,12 +239,12 @@ Dummy F.S. structure:
 
 */
 
-int write_dummy_dir( )
+int write_dummy_dir( buffer * buf, dummy_dir * fs )
 {
 
 }
 
-int write_dummy_file( )
+int write_dummy_file( buffer * buf, dummy_file * file )
 {
 
 }
@@ -258,6 +258,7 @@ int write_dummy_file( )
 int generate_dummy_fs(char* model_root_dir, char * destiny_file )
 {
 	buffer * buf = malloc(sizeof(buffer));
+	buffer * content = malloc(sizeof(content));
 	if(buf == NULL)
 	{
 		return GEN_FS_MEM;
@@ -272,20 +273,24 @@ int generate_dummy_fs(char* model_root_dir, char * destiny_file )
 	// Walk through dirs, build dir and file structure
 	work_directory( model_root_dir , fs, model_root_dir );
 
-	// Write into buffer
-	
-
 	// TODO: Walk through all files in fs, read content and output to buffer
+	init(content);
+	// TODO: walk ...
 
-
-	// TODO: Write buffer to destiny file ...	
-
+	// Write header to buf
+	init(buf);
+	write_dummy_dir( fs , buf);
+	
+	// TODO: Write buffers to destiny file ...	
+	// TODO: * Open file (create, overwrite)
+	// TODO: * Write buffers (buf and content)
+	// TODO: * Close file
 
 	// Free memory
 	destroy( &fs->name );
-	free_dir(fs);
-	free(fs);
-	free(buf);
+	free_dir(fs); (fs);
+	destroy(content); free(content);
+	destroy(buf); free(buf);
 
 	return GEN_FS_SUCCESS ;
 }
