@@ -1,0 +1,18 @@
+
+SRCs=initrd_gen.o
+TARGET=initrd_gen
+LDFLAGS=
+CFLAGS=-c -Wall
+
+
+all: $(SRCs) $(TARGET)
+
+$(TARGET) : $(SRCs)
+	$(CC) $(LDFLAGS) $(SRCs) -o $@
+
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -c $<
+
+clean:
+	rm -rf *.o $(TARGET)
+
