@@ -125,9 +125,7 @@ extern heap_t *kheap;
 
 void initialise_paging()
 {
-	monitor_write("initialise_paging...\n");
-
-   // The size of physical memory. For the moment we
+	// The size of physical memory. For the moment we
    // assume it is 16MB big.
    u32int mem_end_page = 0x1000000;
 
@@ -140,8 +138,7 @@ void initialise_paging()
    memset(kernel_directory, 0, sizeof(page_directory_t));
    current_directory = kernel_directory;
 
-	monitor_write("before mappings...\n");
-   // Map some pages in the kernel heap area.
+	// Map some pages in the kernel heap area.
    // Here we call get_page but not alloc_frame. This causes page_table_t's
    // to be created where necessary. We can't allocate frames yet because they
    // they need to be identity mapped first below, and yet we can't increase
@@ -150,7 +147,6 @@ void initialise_paging()
    for (i = KHEAP_START; i < KHEAP_START+KHEAP_INITIAL_SIZE; i += 0x1000)
        get_page(i, 1, kernel_directory); 
 
-	monitor_write("before identity map...\n");
    // We need to identity map (phys addr = virt addr) from
    // 0x0 to the end of used memory, so we can access this
    // transparently, as if paging wasn't enabled.
@@ -166,7 +162,6 @@ void initialise_paging()
        i += 0x1000;
    }
 
-	monitor_write("before allocate...\n");
    // Now allocate those pages we mapped earlier.
    for (i = KHEAP_START; i < KHEAP_START+KHEAP_INITIAL_SIZE; i += 0x1000)
        alloc_frame( get_page(i, 1, kernel_directory), 0, 0);
@@ -174,11 +169,9 @@ void initialise_paging()
    // Before we enable paging, we must register our page fault handler.
    register_interrupt_handler(14, page_fault);
 
-	monitor_write("before switch...\n");
    // Now, enable paging!
    switch_page_directory(kernel_directory);
 
-	monitor_write("before create heap...\n");
    // Initialise the kernel heap.
    kheap = create_heap(KHEAP_START, KHEAP_START+KHEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0); 
 }

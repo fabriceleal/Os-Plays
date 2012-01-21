@@ -13,7 +13,7 @@ all: $(SOURCES) link
 
 # '-' at the beginning of the command supresses output
 clean:
-	-rm -f *.o $(OUTPUT) bochsout.txt
+	-rm -f *.o $(OUTPUT) bochsout.txt initrd_gen
 
 link:
 	ld $(LDFLAGS) -o $(OUTPUT) $(SOURCES)

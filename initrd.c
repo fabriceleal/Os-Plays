@@ -14,7 +14,6 @@
 
 #include "common.h"
 #include "initrd.h"
-#include "monitor.h"
 
 initrd_header_t *initrd_header;     // The header.
 initrd_file_header_t *file_headers; // The list of file headers.
@@ -28,15 +27,11 @@ struct dirent dirent;
 static u32int initrd_read(fs_node_t *node, u32int offset, u32int size, u8int *buffer)
 {
    initrd_file_header_t header = file_headers[node->inode];
-	monitor_write("(after get header)");
    if (offset > header.length)
        return 0;
-	monitor_write("(after check offset)");
    if (offset+size > header.length)
        size = header.length-offset;
-	monitor_write("(after check offset + size)");
    memcpy(buffer, (u8int*) (header.offset+offset), size);
-	monitor_write("(after mem copy)");
    return size;
 } 
 
