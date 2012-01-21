@@ -14,6 +14,7 @@
 
 #include "dummy_streaming.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 /*
@@ -83,7 +84,7 @@ int write(buffer * obj, const char * write, const unsigned int len)
 		obj->len = obj->buffer_size = new_size;
 	}
 
-	LOG("appending new data (%x, %d, %x) (%d)\n", obj->buffer, current_end, obj->buffer + current_end, len);
+	LOG("appending new data (%x, %d, %x) (%d)\n", (unsigned int)obj->buffer, current_end, (unsigned int)(obj->buffer + current_end), len);
 
 	// Append new data
 	memcpy( obj->buffer + current_end, write, len);
@@ -127,9 +128,9 @@ int tests()
 
 	// TODO: Pretty print, put this on function
 	printf("\n");
-	printf("Buffer = %x\n", test->buffer);
-	printf("Buffer-Size = %x\n", test->buffer_size);
-	printf("Data-Len = %x\n", test->len);
+	printf("Buffer = %x\n", (unsigned int)test->buffer);
+	printf("Buffer-Size = %d\n", test->buffer_size);
+	printf("Data-Len = %d\n", test->len);
 	for(i = 0; i < test->len; ++i)
 	{
 		printf("Offset %d, value %x, char %c\n", i, test->buffer[i], test->buffer[i]);

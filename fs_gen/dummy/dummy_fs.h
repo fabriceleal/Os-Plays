@@ -34,5 +34,6 @@ typedef struct dummy_dir {
 	dummy_file* files;
 } dummy_dir;
 
+int generate_dummy_fs(char* model_root_dir, char * destiny_file );
 
 #endif // ___VAMI_DUMMY_FS

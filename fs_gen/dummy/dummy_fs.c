@@ -39,9 +39,48 @@ int dir_count(const char * directory)
 			++ret;
 		}
 	}
-	close(dir);
+	closedir(dir);
 	LOG( "Counted %d dirs for directory %s\n", ret, directory );
 	return ret;
+}
+
+#define CATPATH_SUCCESS 0
+#define CATPATH_NULL_PTR 1
+#define CATPATH_NULL_BUF 2
+
+int cat_paths(buffer * basepath, char * to_concat)
+{
+	if(basepath == NULL)
+	{
+		return CATPATH_NULL_PTR;
+	}
+	
+	if(basepath->buffer == NULL)
+	{
+		return CATPATH_NULL_BUF;
+	}
+	
+	// Check if buffer ends with '/'; if it doesn't, one will be added	
+	if( 
+		// Attention: buffer may end in '\0'; remove it to do propper appending
+		(basepath->buffer[basepath->len - 1] == '\0')
+	)
+	{
+		basepath->len--;
+	}
+	
+	// Write '/'
+	if(		
+		(basepath->buffer[basepath->len - 1] != '/')
+	)
+	{
+		write(basepath, "/", 1);
+	}	
+
+	// Write to_concat
+	write( basepath, to_concat, strlen(to_concat) + 1 );
+	
+	return CATPATH_SUCCESS;
 }
 
 #define WRKDIR_SUCCESS 0
@@ -50,7 +89,7 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 {
 	struct dirent *dp = NULL;
 
-	LOG("[enter]Ptr is %x\n", dir_st);
+	LOG("[enter]Ptr is %x\n", (unsigned int) dir_st);
 	LOG("[enter]DirName is %s\n", dir_name);
 	
 	// List subdirs and files	
@@ -78,7 +117,7 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 			// Allocate and call recursively (for each dir)
 			dummy_dir * new_child = dir_st->subdirs + i++;
 
-			LOG("Ptr is %x\n" , new_child);
+			LOG("Ptr is %x\n" , (unsigned int)new_child);
 			LOG("Working directory %s\n", dp->d_name);
 
 			// Init name here, its easier than decomposing the full path in the recursive call.
@@ -87,14 +126,17 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 			LOG("Before adding %s\n", dp->d_name);
 			write( &new_child->name, dp->d_name, strlen(dp->d_name) + 1 );
 	
+			buffer * full_path = malloc(sizeof(full_path));
+			init( full_path );
+			write( full_path, dir_name, strlen(dir_name) + 1);
 
-			char * full_path_dest = malloc(sizeof(char) * (2 + strlen(dir_name) + strlen(dp->d_name) ));
-			sprintf(full_path_dest, "%s/%s", dir_name, dp->d_name); // FIXME: Do *real* path concat function
-
-			LOG( "Cat'ed dir is = %s\n", full_path_dest );
+			//char * full_path_dest = malloc(sizeof(char) * (2 + strlen(dir_name) + strlen(dp->d_name) ));
+			//sprintf(full_path_dest, "%s/%s", dir_name, dp->d_name); // FIXME: Do *real* path concat function
+			cat_paths( full_path, dp->d_name );
+			LOG( "Cat'ed dir is = %s\n", full_path->buffer );
 	
 			// Call recursively
-			work_directory( full_path_dest, new_child, root_name );		
+			work_directory( full_path->buffer, new_child, root_name );		
 		}
 		closedir(dir);
 	}	
