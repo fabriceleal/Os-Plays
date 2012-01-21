@@ -46,11 +46,13 @@ int main(struct multiboot *mboot_ptr)
 		 monitor_write("\n\t(directory)\n");
 	  else
 	  {
-		 monitor_write("\n\t contents: \"");
-		 char buf[256];
-		 u32int sz = read_fs(fsnode, 0, 256, buf);
-		 int j;
-		 for (j = 0; j < sz; j++)
+      monitor_write("\n\t contents: \"");
+      char buf[256];
+		monitor_write("\n(before read)\n");
+      u32int sz = read_fs(fsnode, 0, 256, buf);
+		monitor_write("\n(after read)\n");
+		int j;
+		for (j = 0; j < sz; j++)
 		   monitor_put(buf[j]);
 
 		 monitor_write("\"\n");
