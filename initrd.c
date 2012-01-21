@@ -12,6 +12,7 @@
  *
  */
 
+#include "common.h"
 #include "initrd.h"
 
 initrd_header_t *initrd_header;     // The header.

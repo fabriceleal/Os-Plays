@@ -8,7 +8,7 @@ struct initrd_header
 	unsigned int length; // Length of the file.
 };
 
-int main(char argc, char **argv)
+int main(int argc, char **argv)
 {
    int nheaders = (argc-1)/2;
    struct initrd_header headers[64];

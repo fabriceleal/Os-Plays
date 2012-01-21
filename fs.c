@@ -12,7 +12,7 @@
  *
  */
 
-#include "fs_node.h"
+#include "fs.h"
 
 fs_node_t *fs_root = 0; // The root of the filesystem.
 
@@ -42,12 +42,12 @@ u32int write_fs(fs_node_t *node, u32int offset, u32int size, u8int *buffer)
 	}
 }
 
-void open_fs(fs_node_t *node, u8int read, u8int write)
+void open_fs(fs_node_t *node)
 {
 	// Has the node got a open callback?
 	if (node->open != 0)
 	{
-		return node->open(node, read, write);
+		return node->open(node);
 	}
 	else
 	{
