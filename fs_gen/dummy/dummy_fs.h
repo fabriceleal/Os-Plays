@@ -27,6 +27,8 @@ typedef struct dummy_file {
 typedef struct dummy_dir {
 	buffer name;
 
+	struct dummy_dir* parent;
+
 	int subdirs_count;
 	struct dummy_dir* subdirs;
 

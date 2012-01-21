@@ -18,6 +18,28 @@
 #include <string.h>
 #include <dirent.h>
 
+int file_count(const char * directory)
+{
+	LOG("Entering counting files for %s\n", directory);
+	// Count files in a given directory
+	int ret = 0;
+	DIR *dir = opendir(directory);
+	struct dirent * dp = NULL;
+	if(dir == NULL)
+	{
+		LOG_S("[***]ERROR opening directory!\n");
+		return 0;
+	}
+	while( (dp = readdir(dir)) != NULL){
+		if (dp->d_type == DT_REG)
+		{
+			++ret;
+		}
+	}
+	closedir(dir);
+	LOG( "Counted %d files for directory %s\n", ret, directory );
+	return ret;
+}
 
 
 int dir_count(const char * directory)
@@ -34,7 +56,7 @@ int dir_count(const char * directory)
 	}
 	while( (dp = readdir(dir)) != NULL){
 		// Exclude the entries '.' and '..'
-		if (strcmp(dp->d_name, ".") && strcmp(dp->d_name, ".."))
+		if (dp->d_type == DT_DIR && strcmp(dp->d_name, ".") && strcmp(dp->d_name, ".."))
 		{
 			++ret;
 		}
@@ -111,7 +133,7 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 		int i = 0;
 		while( (dp = readdir(dir)) != NULL )
 		{
-			if(!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
+			if(dp->d_type != DT_DIR || !strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
 				continue;
 			
 			// Allocate and call recursively (for each dir)
@@ -119,31 +141,70 @@ int work_directory(char * dir_name, dummy_dir * dir_st, char * root_name)
 
 			LOG("Ptr is %x\n" , (unsigned int)new_child);
 			LOG("Working directory %s\n", dp->d_name);
+			new_child->parent = dir_st;
 
 			// Init name here, its easier than decomposing the full path in the recursive call.
 			init( &new_child->name );
 
-			LOG("Before adding %s\n", dp->d_name);
+			LOG("Before adding dir %s\n", dp->d_name);
 			write( &new_child->name, dp->d_name, strlen(dp->d_name) + 1 );
 	
+			// Prepare for recursive call
 			buffer * full_path = malloc(sizeof(full_path));
 			init( full_path );
 			write( full_path, dir_name, strlen(dir_name) + 1);
 
-			//char * full_path_dest = malloc(sizeof(char) * (2 + strlen(dir_name) + strlen(dp->d_name) ));
-			//sprintf(full_path_dest, "%s/%s", dir_name, dp->d_name); // FIXME: Do *real* path concat function
 			cat_paths( full_path, dp->d_name );
+
 			LOG( "Cat'ed dir is = %s\n", full_path->buffer );
 	
 			// Call recursively
-			work_directory( full_path->buffer, new_child, root_name );		
+			work_directory( full_path->buffer, new_child, root_name );
+
+			destroy( full_path );
+			free( full_path );
 		}
 		closedir(dir);
 	}	
+
+	LOG_S("Parsing files\n");
+
+	// Get count; alocate accordingly
+	int file_c = file_count( dir_name );
+
+	dir_st->files_count = file_c;
+
+	if( file_c == 0 )
+	{
+		dir_st->files = NULL;
+	}
+	else
+	{
+		dir_st->files = malloc(sizeof(dummy_file) * file_c);
+
+		DIR *dir = opendir(dir_name);
+		int i = 0;
+		while( (dp = readdir(dir)) != NULL )
+		{
+			if(dp->d_type != DT_REG)
+				continue;
+			
+			// Allocate and call recursively (for each dir)
+			dummy_file * new_child = dir_st->files + i++;
+
+			LOG("Ptr is %x\n" , (unsigned int)new_child);
+			LOG("Working file %s\n", dp->d_name);
+
+			init( &new_child->name );
+
+			LOG("Before adding file %s\n", dp->d_name);
+			write( &new_child->name, dp->d_name, strlen(dp->d_name) + 1 );
+		}
+		closedir(dir);
+	}
+
 	return WRKDIR_SUCCESS;
 }
-
-
 
 #define WRKFL_SUCCESS 0
 
@@ -151,7 +212,7 @@ int work_file(char * file_name, dummy_file * file, buffer * final_fs)
 {
 	// TODO: Read file content
 	
-	// TODO: Update dummy_file structure
+	// TODO: Update dummy_file structure (offset)
 
 	// TODO: output into final_fs
 
@@ -168,6 +229,25 @@ int free_dir(dummy_dir * dir)
 }
 
 
+/*
+Dummy F.S. structure:
+
+## Headers
+
+## Contents (binary)
+....
+
+*/
+
+int write_dummy_dir( )
+{
+
+}
+
+int write_dummy_file( )
+{
+
+}
 
 #define GEN_FS_SUCCESS 0
 #define GEN_FS_MEM 1
@@ -187,12 +267,13 @@ int generate_dummy_fs(char* model_root_dir, char * destiny_file )
 
 	init( &fs->name );
 	write( &fs->name, "", 1); // Empty string {'\0'}
+	fs->parent = NULL;
 
 	// Walk through dirs, build dir and file structure
 	work_directory( model_root_dir , fs, model_root_dir );
 
-	// TODO: Write into buffer
-
+	// Write into buffer
+	
 
 	// TODO: Walk through all files in fs, read content and output to buffer
 
