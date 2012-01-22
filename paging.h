@@ -58,6 +58,8 @@ typedef struct page_directory
    u32int physicalAddr;
 } page_directory_t;
 
+page_directory_t *clone_directory(page_directory_t *src);
+
 /**
   Sets up the environment, page directories etc and
   enables paging.

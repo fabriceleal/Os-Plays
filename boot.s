@@ -35,11 +35,12 @@ mboot:
 [EXTERN main]                   ; This is the entry point of our C code
 
 start:
-  push    ebx                   ; Load multiboot header location
-
-  ; Execute the kernel:
-  cli                         ; Disable interrupts.
-  call main                   ; call our main() function.
-  jmp $                       ; Enter an infinite loop, to stop the processor
-                              ; executing whatever rubbish is in the memory
-                              ; after our kernel! 
+	push    esp                   ; Needed for moving the stack successfully (http://www.jamesmolloy.co.uk/tutorial_html/9.-Multitasking.html)
+	push    ebx                   ; Load multiboot header location
+											; Both this parameters will be sent to the main() function
+	; Execute the kernel:
+	cli                     	   ; Disable interrupts.
+	call main							; call our main() function.
+	jmp $                      	; Enter an infinite loop, to stop the processor
+									      ; executing whatever rubbish is in the memory
+									      ; after our kernel! 
