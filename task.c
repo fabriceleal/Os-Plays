@@ -41,7 +41,7 @@ void initialise_tasking()
 	asm volatile("cli");
 
    // Relocate the stack so we know where it is.
-   move_stack((void*)STACK_NEW_START, STACK_NEW_SIZE);
+   //move_stack((void*)STACK_NEW_START, STACK_NEW_SIZE);
 
    // Initialise the first task (kernel task)
    current_task = ready_queue = (task_t*)kmalloc(sizeof(task_t));
