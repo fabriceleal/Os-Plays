@@ -16,6 +16,7 @@
 #ifndef ___VAMI_KHEAP
 #define ___VAMI_KHEAP
 
+#include "common.h"
 #include "ordered_array.h"
 
 #define KHEAP_START         	0xC0000000

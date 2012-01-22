@@ -19,9 +19,6 @@
 #include "common.h"
 #include "paging.h"
 
-// Will be set to the initial esp value right after entering the main() function
-u32int initial_esp;
-
 // This structure defines a 'task' - a process.
 typedef struct task
 {

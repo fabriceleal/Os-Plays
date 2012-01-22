@@ -27,9 +27,9 @@ void isr_handler(registers_t regs)
 	else
 	{
 		//TODO: Unhandled interrupt, what to do ???
-		monitor_write("unhandled interrupt: ");
-		monitor_write_dec(regs.int_no);
-		monitor_put('\n');
+		//monitor_write("unhandled interrupt: ");
+		//monitor_write_dec(regs.int_no);
+		//monitor_put('\n');
 	}
 }
 
@@ -55,9 +55,9 @@ void irq_handler(registers_t regs)
 	else
 	{
 		//TODO: Unhandled irq, what to do ???
-		monitor_write("unhandled irq: ");
-		monitor_write_dec(regs.int_no);
-		monitor_put('\n');
+		//monitor_write("unhandled irq: ");
+		//monitor_write_dec(regs.int_no);
+		//monitor_put('\n');
 	}
 }
 

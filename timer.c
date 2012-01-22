@@ -15,10 +15,8 @@
 #include "timer.h"
 #include "isr.h"
 #include "monitor.h"
-#include "task.h"
 
 u32int tick = 0;
-
 
 static void timer_callback(registers_t regs)
 {

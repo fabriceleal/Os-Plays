@@ -11,7 +11,7 @@
 #include "task.h"
 
 extern u32int placement_address;
-extern u32int initial_esp;
+u32int initial_esp;
 
 int main(struct multiboot *mboot_ptr, u32int initial_stack)
 {
@@ -33,7 +33,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    u32int initrd_end = *(u32int*)(mboot_ptr->mods_addr+4);
    // Don't trample our module with placement accesses, please!
    placement_address = initrd_end;
-
+	
 	// Initialize paging
 	initialise_paging();
 
