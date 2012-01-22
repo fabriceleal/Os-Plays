@@ -58,6 +58,7 @@ void move_stack(void *new_stack_start, u32int size)
 	u32int new_stack_pointer = old_stack_pointer + offset;
 	u32int new_base_pointer  = old_base_pointer  + offset; 
 
+	//PANIC("before copying the stack");
 	// Copy the stack.
 	memcpy((void*)new_stack_pointer, (void*)old_stack_pointer, initial_esp-old_stack_pointer); 
 
@@ -84,6 +85,7 @@ void move_stack(void *new_stack_start, u32int size)
 
 void initialise_tasking()
 {
+	// As we are modifying kernel structures, we cannot be interrupt'ed
 	asm volatile("cli");
 
    // Relocate the stack so we know where it is.
@@ -143,11 +145,13 @@ int fork()
        new_task->eip = eip;
        // All finished: Reenable interrupts.
        asm volatile("sti"); 
+		//PANIC("!no, i'm yout father!");
 		 return new_task->id;
 	}
 	else
 	{
 		// We are the child - by convention return 0.
+		//PANIC("!child!");
 		return 0;
 	}
 }

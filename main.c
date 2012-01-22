@@ -58,6 +58,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
    // The next section of code is not reentrant so make sure we aren't interrupted during.
    asm volatile("cli");
+
    // list the contents of /
    int i = 0;
    struct dirent *node = 0;
@@ -85,7 +86,6 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
        i++;
    }
    monitor_write("\n");
-
    asm volatile("sti");
 
 	// ******
