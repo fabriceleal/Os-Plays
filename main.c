@@ -42,6 +42,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
    // Initialise the initial ramdisk, setting it as the filesystem root.
    fs_root = initialise_initrd(initrd_location);
+
 /*
 	return 0;*/
 
