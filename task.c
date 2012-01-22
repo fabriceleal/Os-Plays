@@ -31,6 +31,25 @@ extern u32int read_eip();
 // The next available process ID.
 u32int next_pid = 1;
 
+void initialise_tasking()
+{
+	// As we are modifying kernel structures, we cannot be interrupt'ed
+	asm volatile("cli");
+
+   // Relocate the stack so we know where it is.
+   move_stack((void*)0xE0000000, 0x2000);
+
+   // Initialise the first task (kernel task)
+   current_task = ready_queue = (task_t*)kmalloc(sizeof(task_t));
+   current_task->id = next_pid++;
+   current_task->esp = current_task->ebp = 0;
+   current_task->eip = 0;
+   current_task->page_directory = current_directory;
+   current_task->next = 0;
+
+   // Reenable interrupts.
+   asm volatile("sti");
+} 
 
 void move_stack(void *new_stack_start, u32int size)
 {
@@ -83,25 +102,71 @@ void move_stack(void *new_stack_start, u32int size)
 	asm volatile("mov %0, %%ebp" : : "r" (new_base_pointer));
 } 
 
-void initialise_tasking()
+void switch_task()
 {
-	// As we are modifying kernel structures, we cannot be interrupt'ed
-	asm volatile("cli");
+   // If we haven't initialised tasking yet, just return.
+   if (!current_task)
+       return; 
+	
+	// Read esp, ebp now for saving later on.
+	u32int esp, ebp, eip;
+	asm volatile("mov %%esp, %0" : "=r"(esp));
+	asm volatile("mov %%ebp, %0" : "=r"(ebp)); 
 
-   // Relocate the stack so we know where it is.
-   move_stack((void*)0xE0000000, 0x2000);
+	// Read the instruction pointer. We do some cunning logic here:
+   // One of two things could have happened when this function exits -
+   // (a) We called the function and it returned the EIP as requested.
+   // (b) We have just switched tasks, and because the saved EIP is essentially
+   // the instruction after read_eip(), it will seem as if read_eip has just
+   // returned.
+   // In the second case we need to return immediately. To detect it we put a dummy
+   // value in EAX further down at the end of this function. As C returns values in EAX,
+   // it will look like the return value is this dummy value! (0x12345).
+   eip = read_eip();
 
-   // Initialise the first task (kernel task)
-   current_task = ready_queue = (task_t*)kmalloc(sizeof(task_t));
-   current_task->id = next_pid++;
-   current_task->esp = current_task->ebp = 0;
-   current_task->eip = 0;
-   current_task->page_directory = current_directory;
-   current_task->next = 0;
+   // Have we just switched tasks?
+   if (eip == 0x12345)
+       return;
 
-   // Reenable interrupts.
-   asm volatile("sti");
-} 
+   // No, we didn't switch tasks. Let's save some register values and switch.
+   current_task->eip = eip;
+   current_task->esp = esp;
+   current_task->ebp = ebp; 
+
+   // Get the next task to run.
+   current_task = current_task->next;
+   // If we fell off the end of the linked list start again at the beginning.
+   if (!current_task)
+		current_task = ready_queue; 
+
+   eip = current_task->eip;
+   esp = current_task->esp;
+   ebp = current_task->ebp;
+
+	// Make sure the memory manager knows we've changed page directory.
+	current_directory = current_task->page_directory;
+
+   // Here we:
+   // * Stop interrupts so we don't get interrupted.
+   // * Temporarily put the new EIP location in ECX.
+   // * Load the stack and base pointers from the new task struct.
+   // * Change page directory to the physical address (physicalAddr) of the new directory.
+   // * Put a dummy value (0x12345) in EAX so that above we can recognise that we've just
+   // switched task.
+   // * Restart interrupts. The STI instruction has a delay - it doesn't take effect until after
+   // the next instruction.
+   // * Jump to the location in ECX (remember we put the new EIP in there).
+   asm volatile("         \
+     cli;                 \
+     mov %0, %%ecx;       \
+     mov %1, %%esp;       \
+     mov %2, %%ebp;       \
+     mov %3, %%cr3;       \
+     mov $0x12345, %%eax; \
+     sti;                 \
+     jmp *%%ecx           "
+                : : "r"(eip), "r"(esp), "r"(ebp), "r"(current_directory->physicalAddr));
+}
 
 int fork()
 {
@@ -156,71 +221,8 @@ int fork()
 	}
 }
 
-void switch_task()
-{
-   // If we haven't initialised tasking yet, just return.
-   if (!current_task)
-       return; 
-	
-	// Read esp, ebp now for saving later on.
-	u32int esp, ebp, eip;
-	asm volatile("mov %%esp, %0" : "=r"(esp));
-	asm volatile("mov %%ebp, %0" : "=r"(ebp)); 
-
-	// Read the instruction pointer. We do some cunning logic here:
-   // One of two things could have happened when this function exits -
-   // (a) We called the function and it returned the EIP as requested.
-   // (b) We have just switched tasks, and because the saved EIP is essentially
-   // the instruction after read_eip(), it will seem as if read_eip has just
-   // returned.
-   // In the second case we need to return immediately. To detect it we put a dummy
-   // value in EAX further down at the end of this function. As C returns values in EAX,
-   // it will look like the return value is this dummy value! (0x12345).
-   eip = read_eip();
-
-   // Have we just switched tasks?
-   if (eip == 0x12345)
-       return;
-
-   // No, we didn't switch tasks. Let's save some register values and switch.
-   current_task->eip = eip;
-   current_task->esp = esp;
-   current_task->ebp = ebp; 
-
-   // Get the next task to run.
-   current_task = current_task->next;
-   // If we fell off the end of the linked list start again at the beginning.
-   if (!current_task) current_task = ready_queue; 
-
-   esp = current_task->esp;
-   ebp = current_task->ebp;
-
-   // Here we:
-   // * Stop interrupts so we don't get interrupted.
-   // * Temporarily put the new EIP location in ECX.
-   // * Load the stack and base pointers from the new task struct.
-   // * Change page directory to the physical address (physicalAddr) of the new directory.
-   // * Put a dummy value (0x12345) in EAX so that above we can recognise that we've just
-   // switched task.
-   // * Restart interrupts. The STI instruction has a delay - it doesn't take effect until after
-   // the next instruction.
-   // * Jump to the location in ECX (remember we put the new EIP in there).
-   asm volatile("         \
-     cli;                 \
-     mov %0, %%ecx;       \
-     mov %1, %%esp;       \
-     mov %2, %%ebp;       \
-     mov %3, %%cr3;       \
-     mov $0x12345, %%eax; \
-     sti;                 \
-     jmp *%%ecx           "
-                : : "r"(eip), "r"(esp), "r"(ebp), "r"(current_directory->physicalAddr));
-}
 
 int getpid()
 {
-	if(!current_task)
-		return -1;
-
 	return current_task->id;
 }
