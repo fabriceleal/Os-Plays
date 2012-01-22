@@ -29,6 +29,7 @@ u32int nframes;
 
 // Defined in kheap.c
 extern u32int placement_address;
+extern heap_t *kheap; 
 
 // Macros used in the bitset algorithms.
 #define INDEX_FROM_BIT(a)  (a/(8*4))
@@ -119,10 +120,6 @@ void free_frame(page_t *page)
        page->frame = 0x0; // Page now doesn't have a frame.
    }
 } 
-
-
-extern heap_t *kheap; 
-
 
 void initialise_paging()
 {
@@ -227,28 +224,30 @@ page_t *get_page(u32int address, int make, page_directory_t *dir)
 
 void page_fault(registers_t regs)
 {
-   // A page fault has occurred.
-   // The faulting address is stored in the CR2 register.
-   u32int faulting_address;
-   asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
+	// A page fault has occurred.
+	// The faulting address is stored in the CR2 register.
+	u32int faulting_address;
+	asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
-   // The error code gives us details of what happened.
-   int present   = !(regs.err_code & 0x1); // Page not present
-   int rw = regs.err_code & 0x2;           // Write operation?
-   int us = regs.err_code & 0x4;           // Processor was in user-mode?
-   int reserved = regs.err_code & 0x8;     // Overwritten CPU-reserved bits of page entry?
-   int id = regs.err_code & 0x10;          // Caused by an instruction fetch?
+	// The error code gives us details of what happened.
+	int present   = !(regs.err_code & 0x1); // Page not present
+	int rw = regs.err_code & 0x2;           // Write operation?
+	int us = regs.err_code & 0x4;           // Processor was in user-mode?
+	int reserved = regs.err_code & 0x8;     // Overwritten CPU-reserved bits of page entry?
+	int id = regs.err_code & 0x10;          // Caused by an instruction fetch?
 
-   // Output an error message.
-   monitor_write("Page fault! ( ");
-   if (present) {monitor_write("present ");}
-   if (rw) {monitor_write("read-only ");}
-   if (us) {monitor_write("user-mode ");}
-   if (reserved) {monitor_write("reserved ");}
-   monitor_write(") at 0x");
-   monitor_write_hex(faulting_address);
-   monitor_write("\n");
-   PANIC("Page fault");
+	// Output an error message.
+	monitor_write("Page fault! ( ");
+	if (present) {monitor_write("present ");}
+	if (rw) {monitor_write("read-only ");}
+	if (us) {monitor_write("user-mode ");}
+	if (reserved) {monitor_write("reserved ");}
+	monitor_write(") at 0x");
+	monitor_write_hex(faulting_address);
+	monitor_write(" - EIP: ");
+	monitor_write_hex(regs.eip);
+	monitor_write("\n");
+	PANIC("Page fault");
 } 
 
 static page_table_t *clone_table(page_table_t *src, u32int *physAddr)

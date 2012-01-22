@@ -12,11 +12,12 @@
  *
  */
 
+#include "monitor.h"
 #include "task.h"
 #include "paging.h"
 
 // The currently running task.
-volatile task_t *current_task;
+volatile task_t *current_task = (task_t*) 0x0; // Init as zero, just to be sure
 
 // The start of the task linked list.
 volatile task_t *ready_queue;
@@ -107,7 +108,7 @@ void switch_task()
    // If we haven't initialised tasking yet, just return.
    if (!current_task)
        return; 
-	
+
 	// Read esp, ebp now for saving later on.
 	u32int esp, ebp, eip;
 	asm volatile("mov %%esp, %0" : "=r"(esp));
@@ -126,7 +127,9 @@ void switch_task()
 
    // Have we just switched tasks?
    if (eip == 0x12345)
+	{
        return;
+	}
 
    // No, we didn't switch tasks. Let's save some register values and switch.
    current_task->eip = eip;
@@ -136,8 +139,10 @@ void switch_task()
    // Get the next task to run.
    current_task = current_task->next;
    // If we fell off the end of the linked list start again at the beginning.
-   if (!current_task)
+   if (!current_task) 
+	{
 		current_task = ready_queue; 
+	}
 
    eip = current_task->eip;
    esp = current_task->esp;
@@ -146,6 +151,7 @@ void switch_task()
 	// Make sure the memory manager knows we've changed page directory.
 	current_directory = current_task->page_directory;
 
+	monitor_write("Before switching context\n");
    // Here we:
    // * Stop interrupts so we don't get interrupted.
    // * Temporarily put the new EIP location in ECX.
@@ -210,13 +216,12 @@ int fork()
        new_task->eip = eip;
        // All finished: Reenable interrupts.
        asm volatile("sti"); 
-		//PANIC("!no, i'm yout father!");
+
 		 return new_task->id;
 	}
 	else
 	{
 		// We are the child - by convention return 0.
-		//PANIC("!child!");
 		return 0;
 	}
 }
@@ -224,5 +229,7 @@ int fork()
 
 int getpid()
 {
+	if(!current_task)
+		return 0;
 	return current_task->id;
 }

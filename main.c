@@ -25,8 +25,8 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
    // Initialise the PIT to 100Hz
    asm volatile("sti");
-   init_timer(50);
-	
+   init_timer(100);
+
 	// Find location of original ramdisk
    ASSERT(mboot_ptr->mods_count > 0);
    u32int initrd_location = *((u32int*)mboot_ptr->mods_addr);
