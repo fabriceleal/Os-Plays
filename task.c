@@ -32,13 +32,16 @@ extern u32int read_eip();
 // The next available process ID.
 u32int next_pid = 1;
 
+#define STACK_NEW_START 0xE0000000
+#define STACK_NEW_SIZE  0x2000
+
 void initialise_tasking()
 {
 	// As we are modifying kernel structures, we cannot be interrupt'ed
 	asm volatile("cli");
 
    // Relocate the stack so we know where it is.
-   move_stack((void*)0xE0000000, 0x2000);
+   move_stack((void*)STACK_NEW_START, STACK_NEW_SIZE);
 
    // Initialise the first task (kernel task)
    current_task = ready_queue = (task_t*)kmalloc(sizeof(task_t));
@@ -128,8 +131,13 @@ void switch_task()
    // Have we just switched tasks?
    if (eip == 0x12345)
 	{
-       return;
+		return;
 	}
+
+	monitor_put('s');
+	//monitor_write("about to switch context from ");
+	//monitor_write_hex(getpid());
+	//monitor_put('\n');
 
    // No, we didn't switch tasks. Let's save some register values and switch.
    current_task->eip = eip;
@@ -151,7 +159,9 @@ void switch_task()
 	// Make sure the memory manager knows we've changed page directory.
 	current_directory = current_task->page_directory;
 
-	monitor_write("Before switching context\n");
+	//monitor_write("pid is now ");
+	//monitor_write_hex(getpid());
+	//monitor_put('\n');
    // Here we:
    // * Stop interrupts so we don't get interrupted.
    // * Temporarily put the new EIP location in ECX.
@@ -176,6 +186,7 @@ void switch_task()
 
 int fork()
 {
+	//monitor_write("* enter fork\n");
    // We are modifying kernel structures, and so cannot be interrupted.
    asm volatile("cli");
 
@@ -199,29 +210,39 @@ int fork()
    task_t *tmp_task = (task_t*)ready_queue;
    while (tmp_task->next)
        tmp_task = tmp_task->next;
-   // ...And extend it.
+	// ...And extend it.
    tmp_task->next = new_task; 
-	
+
 	// This will be the entry point for the new process.
 	u32int eip = read_eip();
 
    // We could be the parent or the child here - check.
    if (current_task == parent_task)
    {
-       // We are the parent, so set up the esp/ebp/eip for our child.
-       u32int esp; asm volatile("mov %%esp, %0" : "=r"(esp));
-       u32int ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
-       new_task->esp = esp;
-       new_task->ebp = ebp;
-       new_task->eip = eip;
-       // All finished: Reenable interrupts.
-       asm volatile("sti"); 
+		//monitor_write("Entry point will be ");
+		//monitor_write_hex(eip);
+		//monitor_put('\n');
 
-		 return new_task->id;
+		// We are the parent, so set up the esp/ebp/eip for our child.
+		u32int esp; asm volatile("mov %%esp, %0" : "=r"(esp));
+		u32int ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
+		new_task->esp = esp;
+		new_task->ebp = ebp;
+		new_task->eip = eip;
+
+		// ...And extend it (only had after being setup a valid eip).
+		//tmp_task->next = new_task; 
+
+		// All finished: Reenable interrupts.
+		asm volatile("sti"); 
+
+		//monitor_write("* exiting fork (as parent)\n");
+		return new_task->id;
 	}
 	else
 	{
 		// We are the child - by convention return 0.
+		//monitor_write("* exiting fork (as child)\n");
 		return 0;
 	}
 }

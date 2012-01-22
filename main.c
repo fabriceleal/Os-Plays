@@ -25,7 +25,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
    // Initialise the PIT to 100Hz
    asm volatile("sti");
-   init_timer(100);
+   init_timer(300); //(50);
 
 	// Find location of original ramdisk
    ASSERT(mboot_ptr->mods_count > 0);
@@ -37,7 +37,11 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	// Initialize paging
 	initialise_paging();
 
-   // Start multitasking.
+	// TODO: Create here snapshot of stack, send to initialise tasking ...
+	
+	// ***
+
+   // Initialize multitasking.
    initialise_tasking();
 
    // Initialise the initial ramdisk, setting it as the filesystem root.
@@ -48,6 +52,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
 	// TESTS ***
    // Create a new process in a new address space which is a clone of this.
+	monitor_write("before fork\n");
    int ret = fork();
 
    monitor_write("fork() returned ");
@@ -58,6 +63,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
    // The next section of code is not reentrant so make sure we aren't interrupted during.
    asm volatile("cli");
+	monitor_write("interrupts disabled\n");
 
    // list the contents of /
    int i = 0;
@@ -87,6 +93,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    }
    monitor_write("\n");
    asm volatile("sti");
+	monitor_write("interrupts enabled\n");
 
 	// ******
    return 0;

@@ -11,6 +11,9 @@ LDFLAGS=-Tlink.ld
 ASFLAGS=-felf
 OUTPUT=kernel
 
+# Add debugging information, remove optimizations
+#CFLAGS+= -g -O2
+
 all: $(SOURCES) link 
 
 # '-' at the beginning of the command supresses output
