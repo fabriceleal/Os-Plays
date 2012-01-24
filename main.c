@@ -11,7 +11,13 @@
 #include "task.h"
 
 extern u32int placement_address;
+extern fs_node_t *fs_root;
+
 u32int initial_esp;
+u32int old_stack_pointer;
+u32int old_base_pointer;
+u32int initrd_location;
+u32int initrd_end;
 
 int main(struct multiboot *mboot_ptr, u32int initial_stack)
 {
@@ -29,26 +35,53 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
 	// Find location of original ramdisk
    ASSERT(mboot_ptr->mods_count > 0);
-   u32int initrd_location = *((u32int*)mboot_ptr->mods_addr);
-   u32int initrd_end = *(u32int*)(mboot_ptr->mods_addr+4);
-   // Don't trample our module with placement accesses, please!
+   initrd_location = *((u32int*)mboot_ptr->mods_addr);
+   initrd_end = *(u32int*)(mboot_ptr->mods_addr+4);
+   
+	// Don't trample our module with placement accesses, please!
+	// Do not overwrite module information! :D
    placement_address = initrd_end;
 	
 	// Initialize paging
 	initialise_paging();
 
 	// TODO: Create here snapshot of stack, send to initialise tasking ...
+	{
+		// ARGS
+		monitor_write("Args size:");
+		monitor_write_hex(sizeof(int) + sizeof(u32int));
+		monitor_put('\n');
+
+		asm volatile("mov %%esp, %0" : "=r" (old_stack_pointer));
+		asm volatile("mov %%ebp, %0" : "=r" (old_base_pointer)); 
 	
+		// ESP
+		monitor_write("(MAIN) esp = ");
+		monitor_write_hex(old_stack_pointer);
+		monitor_put('\n');
+
+		// EBP
+		monitor_write("(MAIN) ebp = ");
+		monitor_write_hex(old_base_pointer);
+		monitor_put('\n');
+
+		// To copy
+		monitor_write("(MAIN) to copy = ");
+		monitor_write_hex(initial_esp-old_stack_pointer);
+		monitor_put('\n');
+	}
 	// ***
 
    // Initialize multitasking.
    initialise_tasking();
 
+	PANIC("STOP");
+
    // Initialise the initial ramdisk, setting it as the filesystem root.
    fs_root = initialise_initrd(initrd_location);
 
 /*
-	return 0;*/
+	return 0;
 
 	// TESTS ***
    // Create a new process in a new address space which is a clone of this.
@@ -94,7 +127,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    monitor_write("\n");
    asm volatile("sti");
 	monitor_write("interrupts enabled\n");
-
+*/
 	// ******
    return 0;
 }

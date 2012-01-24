@@ -41,7 +41,7 @@ void initialise_tasking()
 	asm volatile("cli");
 
    // Relocate the stack so we know where it is.
-   //move_stack((void*)STACK_NEW_START, STACK_NEW_SIZE);
+   move_stack((void*)STACK_NEW_START, STACK_NEW_SIZE);
 
    // Initialise the first task (kernel task)
    current_task = ready_queue = (task_t*)kmalloc(sizeof(task_t));
@@ -61,13 +61,15 @@ void move_stack(void *new_stack_start, u32int size)
 	// Allocate some space for the new stack.
 	for( i = (u32int)new_stack_start;
 		i >= ((u32int)new_stack_start-size);
-		i -= 0x1000)
+		i -= 0x1000) // TODO: Put here page size
 	{
 		// General-purpose stack is in user-mode.
 		alloc_frame( get_page(i, 1, current_directory), 0 /* User mode */, 1 /* Is writable */ );
 	} 
 
 	// Flush the TLB by reading and writing the page directory address again.
+	// TODO: Why ???
+
 	u32int pd_addr;
 	asm volatile("mov %%cr3, %0" : "=r" (pd_addr));
 	asm volatile("mov %0, %%cr3" : : "r" (pd_addr)); 
@@ -76,12 +78,32 @@ void move_stack(void *new_stack_start, u32int size)
 	u32int old_stack_pointer; asm volatile("mov %%esp, %0" : "=r" (old_stack_pointer));
 	u32int old_base_pointer;  asm volatile("mov %%ebp, %0" : "=r" (old_base_pointer)); 
 
+	// ESP
+	monitor_write("initial esp = ");
+	monitor_write_hex(initial_esp);
+	monitor_put('\n');
+
+	// ESP
+	monitor_write("old esp = ");
+	monitor_write_hex(old_stack_pointer);
+	monitor_put('\n');
+
+	// EBP
+	monitor_write("old ebp = ");
+	monitor_write_hex(old_base_pointer);
+	monitor_put('\n');
+
+	// To copy
+	monitor_write("to copy = ");
+	monitor_write_hex(initial_esp-old_stack_pointer);
+	monitor_put('\n');
+
+
 	u32int offset            = (u32int)new_stack_start - initial_esp; 
 
 	u32int new_stack_pointer = old_stack_pointer + offset;
 	u32int new_base_pointer  = old_base_pointer  + offset; 
 
-	//PANIC("before copying the stack");
 	// Copy the stack.
 	memcpy((void*)new_stack_pointer, (void*)old_stack_pointer, initial_esp-old_stack_pointer); 
 
@@ -134,7 +156,7 @@ void switch_task()
 		return;
 	}
 
-	monitor_put('s');
+	//monitor_put('s');
 	//monitor_write("about to switch context from ");
 	//monitor_write_hex(getpid());
 	//monitor_put('\n');
