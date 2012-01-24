@@ -21,6 +21,10 @@ u32int initrd_end;
 
 int main(struct multiboot *mboot_ptr, u32int initial_stack)
 {
+	/* 
+		Interruptors are disabled at this point
+	*/
+	
 	// Save here the initial esp value
 	initial_esp = initial_stack;
 
@@ -75,13 +79,26 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    // Initialize multitasking.
    initialise_tasking();
 
-	PANIC("STOP");
+	//PANIC("STOP");
 
    // Initialise the initial ramdisk, setting it as the filesystem root.
    fs_root = initialise_initrd(initrd_location);
 
-/*
-	return 0;
+
+	fork();
+
+   asm volatile("cli");
+	monitor_write("interrupts disabled\n");
+
+	monitor_write("PID() = ");
+   monitor_write_hex(getpid());
+	monitor_put('\n');	
+
+ 	asm volatile("sti");
+	monitor_write("interrupts enabled\n");
+	
+
+	return 0;/*
 
 	// TESTS ***
    // Create a new process in a new address space which is a clone of this.
@@ -127,7 +144,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    monitor_write("\n");
    asm volatile("sti");
 	monitor_write("interrupts enabled\n");
-*/
+
 	// ******
-   return 0;
+   return 0;*/
 }
