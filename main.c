@@ -90,13 +90,14 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    asm volatile("cli");
 	monitor_write("interrupts disabled\n");
 
+	// Should hit twice, one for the parent and another for the child
 	monitor_write("PID() = ");
    monitor_write_hex(getpid());
 	monitor_put('\n');	
 
  	asm volatile("sti");
 	monitor_write("interrupts enabled\n");
-	
+
 
 	return 0;/*
 
