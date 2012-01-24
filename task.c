@@ -208,8 +208,7 @@ void switch_task()
 
 int fork()
 {
-	//monitor_write("* enter fork\n");
-   // We are modifying kernel structures, and so cannot be interrupted.
+   // We are modifying kernel structures, so we cannot be interrupted.
    asm volatile("cli");
 
    // Take a pointer to this process' task struct for later reference.
