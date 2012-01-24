@@ -301,7 +301,7 @@ page_directory_t *clone_directory(page_directory_t *src)
 		if (!src->tables[i])
 			continue; 
 
-		if (0)//kernel_directory->tables[i] == src->tables[i])
+		if (kernel_directory->tables[i] == src->tables[i])
 		{
 			// It's in the kernel, so just use the same pointer.
 			dir->tables[i] = src->tables[i];
