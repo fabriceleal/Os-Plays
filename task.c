@@ -293,9 +293,7 @@ void switch_to_user_mode()
 	// (16) *Switch to user mode*
 
 /*
-     pop %eax ; \
-     or	%eax, %0 ; \
-     push %eax ; \
+
 */
 
    // Set up a stack structure for switching to user mode.
@@ -311,6 +309,9 @@ void switch_to_user_mode()
      pushl $0x23; \
      pushl %eax; \
      pushf; \
+     pop %eax ; \
+     or	$0x200, %eax ; \
+     push %eax ; \
      pushl $0x1B; \
      push $1f; \
      iret; \

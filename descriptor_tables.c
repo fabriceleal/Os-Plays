@@ -48,11 +48,15 @@ tss_entry_t tss_entry;
 // initialises the GDT and IDT.
 void init_descriptor_tables()
 {
+	//PANIC("On Enter");
    // Initialise the global descriptor table and the interrupt descriptor table.
    init_gdt();
+	PANIC("After init gdt");
 	init_idt();
+	PANIC("After init idt");
 	// Nullify all interrupt handlers
 	memset(&interrupt_handlers, 0, sizeof(isr_t)*256);
+	PANIC("After mem set");
 }
 
 static void init_gdt()
@@ -68,7 +72,9 @@ static void init_gdt()
 	write_tss(5, 0x10, 0x0);
 	
    gdt_flush((u32int)&gdt_ptr);
+	//PANIC("After gdt flush");
 	tss_flush();
+	PANIC("After tss flush");
 }
 
 // Set the value of one GDT entry.
@@ -137,6 +143,7 @@ static void init_idt()
    idt_set_gate(29, (u32int)isr29 , 0x08, 0x8E);
    idt_set_gate(30, (u32int)isr30 , 0x08, 0x8E);
    idt_set_gate(31, (u32int)isr31 , 0x08, 0x8E);
+   idt_set_gate(128, (u32int)isr128, 0x08, 0x8E);
 
 	// Set handlers for irqs
    idt_set_gate(32, (u32int)irq0 , 0x08, 0x8E);
@@ -155,7 +162,6 @@ static void init_idt()
    idt_set_gate(45, (u32int)irq13 , 0x08, 0x8E);
    idt_set_gate(46, (u32int)irq14 , 0x08, 0x8E);
    idt_set_gate(47, (u32int)irq15 , 0x08, 0x8E);
-	
 
    idt_flush((u32int)&idt_ptr);
 }
@@ -181,12 +187,16 @@ static void write_tss(s32int num, u16int ss0, u32int esp0)
 
    // Now, add our TSS descriptor's address to the GDT.
    gdt_set_gate(num, base, limit, 0xE9, 0x00);
+	//PANIC("After set gate");
 
    // Ensure the descriptor is initially zero.
    memset(&tss_entry, 0, sizeof(tss_entry));
+	//PANIC("After memset");
 
    tss_entry.ss0  = ss0;  // Set the kernel stack segment.
    tss_entry.esp0 = esp0; // Set the kernel stack pointer.
+
+	//PANIC("After set stack *");
 
    // Here we set the cs, ss, ds, es, fs and gs entries in the TSS. These specify what
    // segments should be loaded when the processor switches to kernel mode. Therefore
@@ -196,6 +206,7 @@ static void write_tss(s32int num, u16int ss0, u32int esp0)
    // to switch to kernel mode from ring 3.
    tss_entry.cs   = 0x0b;
    tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x13;
+	//PANIC("After set other segments");
 }
 
 void set_kernel_stack(u32int stack)

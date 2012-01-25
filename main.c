@@ -28,9 +28,11 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	
 	// Save here the initial esp value
 	initial_esp = initial_stack;
-
+	
 	// Initialize ISR's and segmentation
 	init_descriptor_tables();
+	PANIC("STOP");
+
 	// Initialize screen
 	monitor_clear();
 
@@ -46,12 +48,12 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	// Don't trample our module with placement accesses, please!
 	// Do not overwrite module information! :D
    placement_address = initrd_end;
-	
+
 	// Initialize paging
 	initialise_paging();
 
 	// TODO: Create here snapshot of stack, send to initialise tasking ...
-	{
+	/*{
 		// ARGS
 		monitor_write("Args size:");
 		monitor_write_hex(sizeof(int) + sizeof(u32int));
@@ -74,18 +76,18 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 		monitor_write("(MAIN) to copy = ");
 		monitor_write_hex(initial_esp-old_stack_pointer);
 		monitor_put('\n');
-	}
+	}*/
 	// ***
 
    // Initialize multitasking.
    initialise_tasking();
 
-	//PANIC("STOP");
-
    // Initialise the initial ramdisk, setting it as the filesystem root.
    fs_root = initialise_initrd(initrd_location);
 
+	PANIC("Before initiliase");
 	initialise_syscalls();
+	PANIC("After initiliase");
 
 	switch_to_user_mode();
 
