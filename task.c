@@ -275,3 +275,45 @@ int getpid()
 		return 0;
 	return current_task->id;
 }
+
+void switch_to_user_mode()
+{
+	// (http://www.jamesmolloy.co.uk/tutorial_html/10.-User%20Mode.html)
+	// *Set up stack*
+	// (1) turn off interrupts
+	// (2 .. 6) set-up the DS, ES, FS and GS to use 
+	// the user mode data selector (0x20 | 0x3) (index = 0x20, ring 3 = 0x3)
+	// (7) Save ESP
+	// (8) Push Stack Segment Selector Value (0x23)
+	// (9) Push Value to use as ESP after the final iret
+	// (10) Push EFLAGS
+	// (11 .. 13) Update EFLAGS (pop, change, push) so at the iret the interrupts get re-enabled
+	// (14) Push CS Selector Value (0x18 | 0x3) (index = 0x18, ring 3 = 0x3)
+	// (15) Push value of the next label called '1', search forward
+	// (16) *Switch to user mode*
+
+/*
+     pop %eax ; \
+     or	%eax, %0 ; \
+     push %eax ; \
+*/
+
+   // Set up a stack structure for switching to user mode.
+   asm volatile("  \
+     cli; \
+     mov $0x23, %ax; \
+     mov %ax, %ds; \
+     mov %ax, %es; \
+     mov %ax, %fs; \
+     mov %ax, %gs; \
+                   \
+     mov %esp, %eax; \
+     pushl $0x23; \
+     pushl %eax; \
+     pushf; \
+     pushl $0x1B; \
+     push $1f; \
+     iret; \
+   1: \
+     ");
+} 

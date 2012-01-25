@@ -45,4 +45,6 @@ void move_stack(void *new_stack_start, u32int size);
 // Returns the pid of the current process.
 int getpid();
 
+void switch_to_user_mode();
+
 #endif // ___VAMI_TASK

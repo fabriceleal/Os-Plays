@@ -9,6 +9,7 @@
 #include "fs.h"
 #include "initrd.h"
 #include "task.h"
+#include "syscall.h"
 
 extern u32int placement_address;
 extern fs_node_t *fs_root;
@@ -84,7 +85,12 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    // Initialise the initial ramdisk, setting it as the filesystem root.
    fs_root = initialise_initrd(initrd_location);
 
+	initialise_syscalls();
 
+	switch_to_user_mode();
+
+	syscall_monitor_write("Hello, user world!\n");
+/*
 	fork();
 
    asm volatile("cli");
@@ -97,7 +103,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
  	asm volatile("sti");
 	monitor_write("interrupts enabled\n");
-
+*/
 
 	return 0;/*
 
