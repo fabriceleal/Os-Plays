@@ -64,12 +64,12 @@ static void init_gdt()
    gdt_ptr.limit = (sizeof(gdt_entry_t) * 5) - 1;
    gdt_ptr.base  = (u32int)&gdt_entries;
 
-   gdt_set_gate(0, 0, 0, 0, 0);                // Null segment
-   gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
-   gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
-   gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
-   gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment
-	write_tss(5, 0x10, 0x0);
+   gdt_set_gate(0, 0, 0, 0, 0);                // Null segment (0x0)	
+   gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Kernel mode code segment (0x8)
+   gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Kernel mode data segment (0x10)
+   gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment (0x18)
+   gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment (0x20)
+	write_tss(5, 0x10, 0x0); // (0x28)
 	
    gdt_flush((u32int)&gdt_ptr);
 	//PANIC("After gdt flush");
@@ -184,9 +184,10 @@ static void write_tss(s32int num, u16int ss0, u32int esp0)
    // Firstly, let's compute the base and limit of our entry into the GDT.
    u32int base = (u32int) &tss_entry;
 	
-	//u32int limit = base + sizeof(tss_entry);
+	u32int limit = base + sizeof(tss_entry);
+	
 	// Accordingly to (http://forum.osdev.org/viewtopic.php?t=22825&p=184330)
-   u32int limit = base + sizeof(tss_entry) - 1;
+   //u32int limit = base + sizeof(tss_entry) - 1;
 
    // Now, add our TSS descriptor's address to the GDT.
    gdt_set_gate(num, base, limit, 0xE9, 0x00);
