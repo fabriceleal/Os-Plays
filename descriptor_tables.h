@@ -147,6 +147,40 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
+// Accordingly to (http://forum.osdev.org/viewtopic.php?t=22825&p=184330)
+struct tss_entry_struct
+{
+   u32int link;        // Unused
+   u32int esp0;        // Kernel stack pointer (loaded on task-switch)
+   u32int ss0;         // Kernel stack segment (0x10, u32int to avoid the resv. 16-bit high word)
+   u32int esp1;        // Unused....
+   u32int ss1;
+   u32int esp2;
+   u32int ss2;
+   u32int cr3;
+   u32int eip;
+   u32int eflags;
+   u32int eax;
+   u32int ecx;
+   u32int edx;
+   u32int ebx;
+   u32int esp;
+   u32int ebp;
+   u32int esi;
+   u32int edi;
+   u32int es;
+   u32int cs;
+   u32int ss;
+   u32int ds;
+   u32int fs;
+   u32int gs;
+   u32int ldtr;
+   u16int iopb;        // Please do not use this value, because no programs will have access to I/O ports directly
+   u16int resv;
+} __attribute__ ((packed));
+
+
+/*
 // A struct describing a Task State Segment.
 struct tss_entry_struct
 {
@@ -177,7 +211,7 @@ struct tss_entry_struct
    u32int ldt;        // Unused...
    u16int trap;
    u16int iomap_base;
-} __attribute__((packed));
+} __attribute__((packed));*/
 typedef struct tss_entry_struct tss_entry_t; 
 
 void set_kernel_stack(u32int stack);

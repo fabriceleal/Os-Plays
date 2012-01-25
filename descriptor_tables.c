@@ -35,8 +35,8 @@ static void write_tss(s32int,u16int,u32int);
 
 extern isr_t interrupt_handlers[];
 
-// At least 5, the last one NULL, or bad things will happen
-gdt_entry_t gdt_entries[5]; 
+// At least 6, the last one NULL, or bad things will happen
+gdt_entry_t gdt_entries[6]; 
 gdt_ptr_t   gdt_ptr; 
 
 idt_entry_t idt_entries[256];
@@ -183,7 +183,10 @@ static void write_tss(s32int num, u16int ss0, u32int esp0)
 {
    // Firstly, let's compute the base and limit of our entry into the GDT.
    u32int base = (u32int) &tss_entry;
-   u32int limit = base + sizeof(tss_entry);
+	
+	//u32int limit = base + sizeof(tss_entry);
+	// Accordingly to (http://forum.osdev.org/viewtopic.php?t=22825&p=184330)
+   u32int limit = base + sizeof(tss_entry) - 1;
 
    // Now, add our TSS descriptor's address to the GDT.
    gdt_set_gate(num, base, limit, 0xE9, 0x00);
@@ -204,8 +207,13 @@ static void write_tss(s32int num, u16int ss0, u32int esp0)
    // but with the last two bits set, making 0x0b and 0x13. The setting of these bits
    // sets the RPL (requested privilege level) to 3, meaning that this TSS can be used
    // to switch to kernel mode from ring 3.
-   tss_entry.cs   = 0x0b;
-   tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x13;
+
+	// Accordingly to (http://f.osdev.org/viewtopic.php?t=20036&p=156804)
+	tss_entry.cs   = 0x08;
+   tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x10;
+   
+	//tss_entry.cs   = 0x0b;
+   //tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x13;
 	//PANIC("After set other segments");
 }
 
