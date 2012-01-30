@@ -22,6 +22,59 @@
 // A Global Descriptor Table is necessary for the segmentation mechanism to work ok.
 // ********************************************************************************
 
+enum e_segment_present{
+	e_segment_present_no = 0x0,
+	e_segment_present_yes = 0x1
+};
+
+enum e_ring{
+	e_ring_0 = 0x0,
+	e_ring_1 = 0x1,
+	e_ring_2 = 0x2,
+	e_ring_3 = 0x3
+};
+
+enum e_descriptor_type{
+	e_descriptor_type_system = 0x0,
+	e_descriptor_type_non_system = 0x1 // Code or Data
+};
+
+enum e_segment_type{
+	e_segment_type_data = 0x2,
+	e_segment_type_code = 0xA
+};
+
+/*
+Access byte format (8 bits):
+	P:    Is segment present? (1 = Yes) (1 bit)
+	DPL:  Descriptor privilege level - Ring 0 - 3. (2 bits)
+	DT:   Descriptor type (1 bit)
+	Type: Segment type - code segment / data segment. (4 bits)
+*/
+#define gdt_make_access(segment_present,descriptor_privilege_level,descriptor_type,segment_type) \
+		(((segment_present & 0x1) << 7) | ((descriptor_privilege_level & 0x3) << 5) | ((descriptor_type & 0x1) << 4) | (segment_type & 0xF))
+
+enum e_granularity {
+	e_granularity_byte_1 = 0x0, 
+	e_granularity_kbyte_1 = 0x1
+};
+
+enum e_operand_size{
+	e_operand_size_byte_16 = 0x0, 
+	e_operand_size_byte_32 = 0x1
+};
+
+/*
+Granulatiry format (8 bits):
+	G: Granularity (0 = 1 byte, 1 = 1kbyte) (1 bit)
+	D: Operand size (0 = 16bit, 1 = 32bit) (1 bit)
+	0: Should always be zero. (1 bit, always zero!)
+	A: Available for system use (always zero). (1 bit, available for system)
+	Segment length (19:16) (4 bits)
+*/
+#define gdt_make_granularity(granularity,operand_size,available) \
+		(((0x1 & granularity) << 7) | ((0x1 & operand_size) << 6) | ((0x1 & available) << 4))
+
 // This structure contains the value of one GDT entry.
 // We use the attribute 'packed' to tell GCC not to change
 // any of the alignment in the structure.
@@ -31,22 +84,8 @@ struct gdt_entry_struct
    u16int base_low;            // The lower 16 bits of the base.
    u8int  base_middle;         // The next 8 bits of the base.
 
-/*
-Access byte format:
-	P:    Is segment present? (1 = Yes)
-	DPL:  Descriptor privilege level - Ring 0 - 3.
-	DT:   Descriptor type
-	Type: Segment type - code segment / data segment.
-*/
    u8int  access;              // Access flags, determine what ring this segment can be used in.
    
-/*
-Granulatiry format:
-	G: Granularity (0 = 1 byte, 1 = 1kbyte)
-	D: Operand size (0 = 16bit, 1 = 32bit)
-	0: Should always be zero.
-	A: Available for system use (always zero).
-*/
 	u8int  granularity;
    u8int  base_high;           // The last 8 bits of the base.
 }

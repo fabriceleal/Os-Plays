@@ -31,7 +31,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	
 	// Initialize ISR's and segmentation
 	init_descriptor_tables();
-	PANIC("STOP");
+	//PANIC("STOP");
 
 	// Initialize screen
 	monitor_clear();
@@ -53,7 +53,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	initialise_paging();
 
 	// TODO: Create here snapshot of stack, send to initialise tasking ...
-	/*{
+	{
 		// ARGS
 		monitor_write("Args size:");
 		monitor_write_hex(sizeof(int) + sizeof(u32int));
@@ -76,7 +76,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 		monitor_write("(MAIN) to copy = ");
 		monitor_write_hex(initial_esp-old_stack_pointer);
 		monitor_put('\n');
-	}*/
+	}
 	// ***
 
    // Initialize multitasking.
@@ -85,11 +85,9 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    // Initialise the initial ramdisk, setting it as the filesystem root.
    fs_root = initialise_initrd(initrd_location);
 
-/*
-	PANIC("Before initiliase");
 	initialise_syscalls();
-	PANIC("After initiliase");
 
+/*
 	switch_to_user_mode();
 
 	syscall_monitor_write("Hello, user world!\n");
@@ -108,6 +106,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	monitor_write("interrupts enabled\n");
 */
 
+	monitor_write("Happy ending.");
 	return 0;/*
 
 	// TESTS ***

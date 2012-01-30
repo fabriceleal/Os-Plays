@@ -34,69 +34,143 @@ static void idt_set_gate(u8int,u32int,u16int,u8int);
 static void write_tss(s32int,u16int,u32int);
 
 extern isr_t interrupt_handlers[];
-
+/*
+x86 segments:
+cs (code segment), ds (data segment), es (extra segment), fs, gs, ss (stack segment)
+*/
 // At least 6, the last one NULL, or bad things will happen
-gdt_entry_t gdt_entries[6]; 
+#define SIZE_GDT 6
+#define SIZE_IDT 256
+
+gdt_entry_t gdt_entries[ SIZE_GDT ]; 
 gdt_ptr_t   gdt_ptr; 
 
-idt_entry_t idt_entries[256];
+idt_entry_t idt_entries[ SIZE_IDT ];
 idt_ptr_t   idt_ptr;
 
 tss_entry_t tss_entry;
 
-// Initialisation routine - zeroes all the interrupt service routines,
 // initialises the GDT and IDT.
 void init_descriptor_tables()
 {
-	//PANIC("On Enter");
-   // Initialise the global descriptor table and the interrupt descriptor table.
+   // Initialise the global descriptor table
    init_gdt();
-	PANIC("After init gdt");
+
+	// Initialise and null'ify the interrupt descriptor table
 	init_idt();
-	PANIC("After init idt");
-	// Nullify all interrupt handlers
-	memset(&interrupt_handlers, 0, sizeof(isr_t)*256);
-	PANIC("After mem set");
+	memset(&interrupt_handlers, 0, sizeof(isr_t)* SIZE_IDT );
 }
 
 static void init_gdt()
 {
-   gdt_ptr.limit = (sizeof(gdt_entry_t) * 5) - 1;
+   gdt_ptr.limit = (sizeof(gdt_entry_t) * SIZE_GDT );
    gdt_ptr.base  = (u32int)&gdt_entries;
 
-   gdt_set_gate(0, 0, 0, 0, 0);                // Null segment (0x0)	
-   gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Kernel mode code segment (0x8)
-   gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Kernel mode data segment (0x10)
-   gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment (0x18)
-   gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment (0x20)
+	// Null segment (0x0), just because the whiny processor needs it
+   gdt_set_gate( e_segment_present_no, 0, 0, 0, 0);
+
+   gdt_set_gate(1, 0, 0xFFFFFFFF, 
+			gdt_make_access(
+					e_segment_present_yes, 
+					e_ring_0, 
+					e_descriptor_type_non_system, 
+					e_segment_type_code), 
+			gdt_make_granularity(
+					e_granularity_kbyte_1, 
+					e_operand_size_byte_32, 
+					0x0));
+	// Kernel mode code segment (at 0x8)
+
+	// **
+   gdt_set_gate(2, 0, 0xFFFFFFFF, 
+			gdt_make_access(
+					e_segment_present_yes, 
+					e_ring_0, 
+					e_descriptor_type_non_system, 
+					e_segment_type_data), 
+			gdt_make_granularity(
+					e_granularity_kbyte_1, 
+					e_operand_size_byte_32, 
+					0x0)); 
+	// Kernel mode data segment (0x10)
+
+	// **
+   gdt_set_gate(3, 0, 0xFFFFFFFF, 
+			gdt_make_access(
+					e_segment_present_yes, 
+					e_ring_3, 
+					e_descriptor_type_non_system, 
+					e_segment_type_code), 
+			gdt_make_granularity(
+					e_granularity_kbyte_1, 
+					e_operand_size_byte_32, 
+					0x0));
+	// User mode code segment (0x18)
+
+	// **
+   gdt_set_gate(4, 0, 0xFFFFFFFF, 
+			gdt_make_access(
+					e_segment_present_yes, 
+					e_ring_3, 
+					e_descriptor_type_non_system, 
+					e_segment_type_data), 
+			gdt_make_granularity(
+					e_granularity_kbyte_1, 
+					e_operand_size_byte_32, 
+					0x0));
+	// User mode data segment (0x20)
+
+	/*
+
+	// Some debugging code ...
+
+	monitor_write_dec(gdt_make_access(e_segment_present_yes, e_ring_0, e_descriptor_type_non_system, e_segment_type_code));
+	monitor_put('\n');
+	monitor_write_dec(gdt_make_access(e_segment_present_yes, e_ring_0, e_descriptor_type_non_system, e_segment_type_data));
+	monitor_put('\n');
+	monitor_write_dec(gdt_make_access(e_segment_present_yes, e_ring_3, e_descriptor_type_non_system, e_segment_type_code));
+	monitor_put('\n');
+	monitor_write_dec(gdt_make_access(e_segment_present_yes, e_ring_3, e_descriptor_type_non_system, e_segment_type_data));
+	monitor_put('\n');
+	monitor_write_dec(gdt_make_granularity(e_granularity_kbyte_1, e_operand_size_byte_32, 0x0));
+	monitor_put('\n');
+
+	ASSERT(gdt_make_access(e_segment_present_yes, e_ring_0, e_descriptor_type_non_system, e_segment_type_code) == 0x9A); //, "Err!(1)...");
+	ASSERT(gdt_make_access(e_segment_present_yes, e_ring_0, e_descriptor_type_non_system, e_segment_type_data) == 0x92); //, "Err!(2)...");
+	ASSERT(gdt_make_access(e_segment_present_yes, e_ring_3, e_descriptor_type_non_system, e_segment_type_code) == 0xFA); //, "Err!(3)...");
+	ASSERT(gdt_make_access(e_segment_present_yes, e_ring_3, e_descriptor_type_non_system, e_segment_type_data) == 0xF2); //, "Err!(4)...");
+	ASSERT(gdt_make_granularity(e_granularity_kbyte_1, e_operand_size_byte_32, 0x0) == 0xC0); //, "Err!(5)...");
+
+	*/
+
 	write_tss(5, 0x10, 0x0); // (0x28)
 	
    gdt_flush((u32int)&gdt_ptr);
-	//PANIC("After gdt flush");
-	//tss_flush(); FIXME: Not working, skip
-	//PANIC("After tss flush");
+	tss_flush();
 }
 
 // Set the value of one GDT entry.
 static void gdt_set_gate(s32int num, u32int base, u32int limit, u8int access, u8int gran)
 {
+	// Weird endianess ... 
+
    gdt_entries[num].base_low    = (base & 0xFFFF);
    gdt_entries[num].base_middle = (base >> 16) & 0xFF;
    gdt_entries[num].base_high   = (base >> 24) & 0xFF;
 
    gdt_entries[num].limit_low   = (limit & 0xFFFF);
-   gdt_entries[num].granularity = (limit >> 16) & 0x0F;
+   gdt_entries[num].granularity = (limit >> 16) & 0x0F; // The lower 4 bits of granularity are the 19:16 bits of the limit :S
 
-   gdt_entries[num].granularity |= gran & 0xF0;
+   gdt_entries[num].granularity |= gran & 0xF0; // Only use upper 4 bits
    gdt_entries[num].access      = access;
 } 
 
 static void init_idt()
 {
-   idt_ptr.limit = sizeof(idt_entry_t) * 256 -1;
+   idt_ptr.limit = sizeof(idt_entry_t) * SIZE_IDT;
    idt_ptr.base  = (u32int)&idt_entries;
 
-   memset(&idt_entries, 0, sizeof(idt_entry_t)*256);
+   memset(&idt_entries, 0, sizeof(idt_entry_t)*SIZE_IDT);
 
 	// Remap PICs
 	outb(0x20, 0x11);
@@ -173,6 +247,7 @@ static void idt_set_gate(u8int num, u32int base, u16int sel, u8int flags)
 
    idt_entries[num].sel     = sel;
    idt_entries[num].always0 = 0;
+
    // We must uncomment the OR below when we get to using user-mode.
    // It sets the interrupt gate's privilege level to 3.
    idt_entries[num].flags   = flags /* | 0x60 */;
@@ -199,8 +274,6 @@ static void write_tss(s32int num, u16int ss0, u32int esp0)
 
    tss_entry.ss0  = ss0;  // Set the kernel stack segment.
    tss_entry.esp0 = esp0; // Set the kernel stack pointer.
-
-	//PANIC("After set stack *");
 
    // Here we set the cs, ss, ds, es, fs and gs entries in the TSS. These specify what
    // segments should be loaded when the processor switches to kernel mode. Therefore
