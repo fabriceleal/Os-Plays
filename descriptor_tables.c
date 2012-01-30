@@ -73,8 +73,8 @@ static void init_gdt()
 	
    gdt_flush((u32int)&gdt_ptr);
 	//PANIC("After gdt flush");
-	tss_flush();
-	PANIC("After tss flush");
+	//tss_flush(); FIXME: Not working, skip
+	//PANIC("After tss flush");
 }
 
 // Set the value of one GDT entry.

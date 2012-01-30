@@ -85,6 +85,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
    // Initialise the initial ramdisk, setting it as the filesystem root.
    fs_root = initialise_initrd(initrd_location);
 
+/*
 	PANIC("Before initiliase");
 	initialise_syscalls();
 	PANIC("After initiliase");
@@ -92,7 +93,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	switch_to_user_mode();
 
 	syscall_monitor_write("Hello, user world!\n");
-/*
+
 	fork();
 
    asm volatile("cli");
