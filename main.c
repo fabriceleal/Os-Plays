@@ -80,12 +80,12 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	// ***
 
    // Initialize multitasking.
-   initialise_tasking();
+   //initialise_tasking();
 
    // Initialise the initial ramdisk, setting it as the filesystem root.
-   fs_root = initialise_initrd(initrd_location);
+   //fs_root = initialise_initrd(initrd_location);
 
-	initialise_syscalls();
+	//initialise_syscalls();
 
 /*
 	switch_to_user_mode();
