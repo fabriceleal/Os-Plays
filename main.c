@@ -106,6 +106,9 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	monitor_write("interrupts enabled\n");
 */
 
+	int* i = 0x0;
+	monitor_write_dec(*i);
+
 	monitor_write("Happy ending.");
 	return 0;/*
 

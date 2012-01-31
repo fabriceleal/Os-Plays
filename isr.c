@@ -16,6 +16,42 @@
 #include "isr.h"
 #include "monitor.h"
 
+char *interrupt_messages[] = {
+	"Division by zero exception",
+	"Debug exception",
+	"Non maskable interrupt",
+	"Breakpoint exception",
+	"'Into detected overflow'",
+	"Out of bounds exception",
+	"Invalid opcode exception",
+	"No coprocessor exception",
+	"Double fault (check error code)",
+	"Coprocessor segment overrun",
+	"Bad TSS (check error code)",
+	"Segment not present (check error code)",
+	"Stack fault (pushes an error code)",
+	"General protection fault (check error code)",
+	"Page fault (check error code)",
+	"Unknown interrupt exception",
+	"Coprocessor fault",
+	"Alignment check exception",
+	"Machine check exception",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved"
+};
+
 // This gets called from our ASM interrupt handler stub.
 void isr_handler(registers_t regs)
 {
@@ -31,9 +67,9 @@ void isr_handler(registers_t regs)
 	else
 	{
 		//TODO: Unhandled interrupt, what to do ???
-		monitor_write("unhandled interrupt: ");
-		monitor_write_dec(int_no);
-		monitor_put('\n');
+		//monitor_write("unhandled interrupt: ");
+		//monitor_write_dec(int_no);
+		//monitor_put('\n');
 	}
 }
 
@@ -61,7 +97,7 @@ void irq_handler(registers_t regs)
 		//TODO: Unhandled irq, what to do ???
 		//monitor_write("unhandled irq: ");
 		//monitor_write_dec(regs.int_no);
-		//monitor_put('\n');
+		//monitor_put('\n');		
 	}
 }
 
