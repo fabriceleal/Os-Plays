@@ -106,10 +106,16 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	monitor_write("interrupts enabled\n");
 */
 
-	int* i = 0x0;
-	monitor_write_dec(*i);
+	monitor_write("...\n");
+
+	// * le page fault
+	//int* i = 0x98765421;
+	//monitor_write_dec(*i);
+
+	asm volatile ("int $0x3");
 
 	monitor_write("Happy ending.");
+
 	return 0;/*
 
 	// TESTS ***

@@ -3,6 +3,9 @@
 ; Based on Bran's kernel development tutorial file start.asm
 ;
 
+; TODO: Refer to http://www.osdever.net/bkerndev/Docs/basickernel.htm,
+; TODO: this might help with problems with the stack ...
+
 MBOOT_PAGE_ALIGN    equ 1<<0    ; Load kernel and modules on a page boundary
 MBOOT_MEM_INFO      equ 1<<1    ; Provide your kernel with memory info
 MBOOT_HEADER_MAGIC  equ 0x1BADB002 ; Multiboot Magic value

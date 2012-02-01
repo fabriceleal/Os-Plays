@@ -52,7 +52,7 @@ char *interrupt_messages[] = {
 	"Reserved"
 };
 
-// This gets called from our ASM interrupt handler stub.
+// C Interrupt dispatcher
 void isr_handler(registers_t regs)
 {
 	// This line is important. When the processor extends the 8-bit interrupt number
@@ -66,10 +66,16 @@ void isr_handler(registers_t regs)
 	}
 	else
 	{
-		//TODO: Unhandled interrupt, what to do ???
-		//monitor_write("unhandled interrupt: ");
-		//monitor_write_dec(int_no);
-		//monitor_put('\n');
+		monitor_write("Unhandled interrupt #");
+		monitor_write_dec(int_no);
+		monitor_put('\n');
+		monitor_write("Message: ");
+		if(int_no < 32){
+			monitor_write(interrupt_messages[int_no - 1]);
+			monitor_put('\n');
+		}
+		// ERR!
+		PANIC("Unhandled interrupt");
 	}
 }
 

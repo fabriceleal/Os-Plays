@@ -34,6 +34,7 @@ static void idt_set_gate(u8int,u32int,u16int,u8int);
 static void write_tss(s32int,u16int,u32int);
 
 extern isr_t interrupt_handlers[];
+
 /*
 x86 segments:
 cs (code segment), ds (data segment), es (extra segment), fs, gs, ss (stack segment)
@@ -41,6 +42,17 @@ cs (code segment), ds (data segment), es (extra segment), fs, gs, ss (stack segm
 // At least 6, the last one NULL, or bad things will happen
 #define SIZE_GDT 6
 #define SIZE_IDT 256
+
+#define GDT_NULL 0
+#define GDT_KERNEL_CODE 1
+#define GDT_KERNEL_DATA 2
+#define GDT_USER_CODE 3
+#define GDT_USER_DATA 4
+
+/*
+This function takes an index into the gdt_entries array, and gets the offset of the entry, relatively from the base
+*/
+#define tr_gdt_entry_to_offset(index) ((u16int) (index * sizeof(gdt_entry_t)))
 
 gdt_entry_t gdt_entries[ SIZE_GDT ]; 
 gdt_ptr_t   gdt_ptr; 
@@ -62,16 +74,16 @@ void init_descriptor_tables()
 }
 
 static void init_gdt()
-{
+{	
    gdt_ptr.limit = (sizeof(gdt_entry_t) * SIZE_GDT );
    gdt_ptr.base  = (u32int)&gdt_entries;
 
 	// Null segment (0x0), just because the whiny processor needs it
-   gdt_set_gate( e_segment_present_no, 0, 0, 0, 0);
+   gdt_set_gate( e_entry_present_no, 0, 0, 0, 0);
 
    gdt_set_gate(1, 0, 0xFFFFFFFF, 
 			gdt_make_access(
-					e_segment_present_yes, 
+					e_entry_present_yes, 
 					e_ring_0, 
 					e_descriptor_type_non_system, 
 					e_segment_type_code), 
@@ -84,7 +96,7 @@ static void init_gdt()
 	// **
    gdt_set_gate(2, 0, 0xFFFFFFFF, 
 			gdt_make_access(
-					e_segment_present_yes, 
+					e_entry_present_yes, 
 					e_ring_0, 
 					e_descriptor_type_non_system, 
 					e_segment_type_data), 
@@ -97,7 +109,7 @@ static void init_gdt()
 	// **
    gdt_set_gate(3, 0, 0xFFFFFFFF, 
 			gdt_make_access(
-					e_segment_present_yes, 
+					e_entry_present_yes, 
 					e_ring_3, 
 					e_descriptor_type_non_system, 
 					e_segment_type_code), 
@@ -110,7 +122,7 @@ static void init_gdt()
 	// **
    gdt_set_gate(4, 0, 0xFFFFFFFF, 
 			gdt_make_access(
-					e_segment_present_yes, 
+					e_entry_present_yes, 
 					e_ring_3, 
 					e_descriptor_type_non_system, 
 					e_segment_type_data), 
@@ -184,58 +196,61 @@ static void init_idt()
 	outb(0x21, 0x0);
 	outb(0xA1, 0x0);
 
+	ASSERT( idt_make_flags(e_entry_present_yes, e_ring_0) == 0x8E );
+	ASSERT( tr_gdt_entry_to_offset( GDT_KERNEL_CODE ) == 0X08 );
+
 	// Set handlers for interrupts
-   idt_set_gate( 0, (u32int)isr0  , 0x08, 0x8E);
-   idt_set_gate( 1, (u32int)isr1  , 0x08, 0x8E);
-   idt_set_gate( 2, (u32int)isr2  , 0x08, 0x8E);
-   idt_set_gate( 3, (u32int)isr3  , 0x08, 0x8E);
-   idt_set_gate( 4, (u32int)isr4  , 0x08, 0x8E);
-   idt_set_gate( 5, (u32int)isr5  , 0x08, 0x8E);
-   idt_set_gate( 6, (u32int)isr6  , 0x08, 0x8E);
-   idt_set_gate( 7, (u32int)isr7  , 0x08, 0x8E);
-   idt_set_gate( 8, (u32int)isr8  , 0x08, 0x8E);
-   idt_set_gate( 9, (u32int)isr9  , 0x08, 0x8E);
-   idt_set_gate(10, (u32int)isr10 , 0x08, 0x8E);
-   idt_set_gate(11, (u32int)isr11 , 0x08, 0x8E);
-   idt_set_gate(12, (u32int)isr12 , 0x08, 0x8E);
-   idt_set_gate(13, (u32int)isr13 , 0x08, 0x8E);
-   idt_set_gate(14, (u32int)isr14 , 0x08, 0x8E);
-   idt_set_gate(15, (u32int)isr15 , 0x08, 0x8E);
-   idt_set_gate(16, (u32int)isr16 , 0x08, 0x8E);
-   idt_set_gate(17, (u32int)isr17 , 0x08, 0x8E);
-   idt_set_gate(18, (u32int)isr18 , 0x08, 0x8E);
-   idt_set_gate(19, (u32int)isr19 , 0x08, 0x8E);
-   idt_set_gate(20, (u32int)isr20 , 0x08, 0x8E);
-   idt_set_gate(21, (u32int)isr21 , 0x08, 0x8E);
-   idt_set_gate(22, (u32int)isr22 , 0x08, 0x8E);
-   idt_set_gate(23, (u32int)isr23 , 0x08, 0x8E);
-   idt_set_gate(24, (u32int)isr24 , 0x08, 0x8E);
-   idt_set_gate(25, (u32int)isr25 , 0x08, 0x8E);
-   idt_set_gate(26, (u32int)isr26 , 0x08, 0x8E);
-   idt_set_gate(27, (u32int)isr27 , 0x08, 0x8E);
-   idt_set_gate(28, (u32int)isr28 , 0x08, 0x8E);
-   idt_set_gate(29, (u32int)isr29 , 0x08, 0x8E);
-   idt_set_gate(30, (u32int)isr30 , 0x08, 0x8E);
-   idt_set_gate(31, (u32int)isr31 , 0x08, 0x8E);
-   idt_set_gate(128, (u32int)isr128, 0x08, 0x8E);
+   idt_set_gate( 0, (u32int)isr0   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 1, (u32int)isr1   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 2, (u32int)isr2   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 3, (u32int)isr3   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 4, (u32int)isr4   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 5, (u32int)isr5   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 6, (u32int)isr6   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 7, (u32int)isr7   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 8, (u32int)isr8   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate( 9, (u32int)isr9   , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(10, (u32int)isr10  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(11, (u32int)isr11  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(12, (u32int)isr12  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(13, (u32int)isr13  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(14, (u32int)isr14  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(15, (u32int)isr15  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(16, (u32int)isr16  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(17, (u32int)isr17  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(18, (u32int)isr18  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(19, (u32int)isr19  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(20, (u32int)isr20  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(21, (u32int)isr21  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(22, (u32int)isr22  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(23, (u32int)isr23  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(24, (u32int)isr24  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(25, (u32int)isr25  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(26, (u32int)isr26  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(27, (u32int)isr27  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(28, (u32int)isr28  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(29, (u32int)isr29  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(30, (u32int)isr30  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(31, (u32int)isr31  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(128, (u32int)isr128, tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
 
 	// Set handlers for irqs
-   idt_set_gate(32, (u32int)irq0 , 0x08, 0x8E);
-   idt_set_gate(33, (u32int)irq1 , 0x08, 0x8E);
-   idt_set_gate(34, (u32int)irq2 , 0x08, 0x8E);
-   idt_set_gate(35, (u32int)irq3 , 0x08, 0x8E);
-   idt_set_gate(36, (u32int)irq4 , 0x08, 0x8E);
-   idt_set_gate(37, (u32int)irq5 , 0x08, 0x8E);
-   idt_set_gate(38, (u32int)irq6 , 0x08, 0x8E);
-   idt_set_gate(39, (u32int)irq7 , 0x08, 0x8E);
-   idt_set_gate(40, (u32int)irq8 , 0x08, 0x8E);
-   idt_set_gate(41, (u32int)irq9 , 0x08, 0x8E);
-   idt_set_gate(42, (u32int)irq10 , 0x08, 0x8E);
-   idt_set_gate(43, (u32int)irq11 , 0x08, 0x8E);
-   idt_set_gate(44, (u32int)irq12 , 0x08, 0x8E);
-   idt_set_gate(45, (u32int)irq13 , 0x08, 0x8E);
-   idt_set_gate(46, (u32int)irq14 , 0x08, 0x8E);
-   idt_set_gate(47, (u32int)irq15 , 0x08, 0x8E);
+   idt_set_gate(32, (u32int)irq0  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(33, (u32int)irq1  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(34, (u32int)irq2  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(35, (u32int)irq3  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(36, (u32int)irq4  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(37, (u32int)irq5  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(38, (u32int)irq6  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(39, (u32int)irq7  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(40, (u32int)irq8  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(41, (u32int)irq9  , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(42, (u32int)irq10 , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(43, (u32int)irq11 , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(44, (u32int)irq12 , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(45, (u32int)irq13 , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(46, (u32int)irq14 , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
+   idt_set_gate(47, (u32int)irq15 , tr_gdt_entry_to_offset(GDT_KERNEL_CODE) , idt_make_flags(e_entry_present_yes, e_ring_0));
 
    idt_flush((u32int)&idt_ptr);
 }
@@ -295,3 +310,9 @@ void set_kernel_stack(u32int stack)
 {
    tss_entry.esp0 = stack;
 } 
+
+// For now, you can't use this outside this source code file
+// If you really want it, it might be better putting it in a 
+// exported function (rather than extern'ing the gdt_entries 
+// in every place ....)
+#undef tr_gdt_entry_to_offset

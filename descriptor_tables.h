@@ -13,8 +13,6 @@
  */
 
 
-// VAMI stands for Validation Against Multiple Includes :)
-
 #ifndef ___VAMI_DESCRIPTOR_TABLES
 #define ___VAMI_DESCRIPTOR_TABLES
 
@@ -22,9 +20,9 @@
 // A Global Descriptor Table is necessary for the segmentation mechanism to work ok.
 // ********************************************************************************
 
-enum e_segment_present{
-	e_segment_present_no = 0x0,
-	e_segment_present_yes = 0x1
+enum e_entry_present{
+	e_entry_present_no = 0x0,
+	e_entry_present_yes = 0x1
 };
 
 enum e_ring{
@@ -105,6 +103,11 @@ typedef struct gdt_ptr_struct gdt_ptr_t;
 // Initialisation function is publicly accessible.
 void init_descriptor_tables();
 
+/*
+TODO: document this, from http://www.jamesmolloy.co.uk/tutorial_html/4.-The%20GDT%20and%20IDT.html
+*/
+#define idt_make_flags(present,descriptor_privilege_level) (((present & 0x1) << 7) | ((descriptor_privilege_level & 0x3) << 5) | (0xE))
+
 // ********************************************************************************
 // Interrupts Descriptor tables
 // ********************************************************************************
@@ -130,11 +133,7 @@ struct idt_ptr_struct
 typedef struct idt_ptr_struct idt_ptr_t;
 
 // These extern directives let us access the addresses of our ASM ISR handlers.
-
-// Division by zero exception
 extern void isr0 ();
-
-// TODO: Add here Interrupt descriptions ...
 extern void isr1 ();
 extern void isr2 ();
 extern void isr3 ();
@@ -168,7 +167,6 @@ extern void isr30();
 extern void isr31(); 
 extern void isr128();
 
-
 extern void irq0 ();
 extern void irq1 ();
 extern void irq2 ();
@@ -186,47 +184,17 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
+// ********************************************************************************
+// Task State Segment Table
+// ********************************************************************************
+
 // Accordingly to (http://forum.osdev.org/viewtopic.php?t=22825&p=184330)
 struct tss_entry_struct
 {
-   u32int link;        // Unused
+   u32int prev_tss;   // The previous TSS - if we used hardware task switching this would form a linked list.
    u32int esp0;        // Kernel stack pointer (loaded on task-switch)
    u32int ss0;         // Kernel stack segment (0x10, u32int to avoid the resv. 16-bit high word)
    u32int esp1;        // Unused....
-   u32int ss1;
-   u32int esp2;
-   u32int ss2;
-   u32int cr3;
-   u32int eip;
-   u32int eflags;
-   u32int eax;
-   u32int ecx;
-   u32int edx;
-   u32int ebx;
-   u32int esp;
-   u32int ebp;
-   u32int esi;
-   u32int edi;
-   u32int es;
-   u32int cs;
-   u32int ss;
-   u32int ds;
-   u32int fs;
-   u32int gs;
-   u32int ldtr;
-   u16int iopb;        // Please do not use this value, because no programs will have access to I/O ports directly
-   u16int resv;
-} __attribute__ ((packed));
-
-
-/*
-// A struct describing a Task State Segment.
-struct tss_entry_struct
-{
-   u32int prev_tss;   // The previous TSS - if we used hardware task switching this would form a linked list.
-   u32int esp0;       // The stack pointer to load when we change to kernel mode.
-   u32int ss0;        // The stack segment to load when we change to kernel mode.
-   u32int esp1;       // Unused...
    u32int ss1;
    u32int esp2;
    u32int ss2;
@@ -248,9 +216,10 @@ struct tss_entry_struct
    u32int fs;         // The value to load into FS when we change to kernel mode.
    u32int gs;         // The value to load into GS when we change to kernel mode.
    u32int ldt;        // Unused...
-   u16int trap;
-   u16int iomap_base;
-} __attribute__((packed));*/
+   u16int iopb;        //  u16int trap; // Please do not use this value, because no programs will have access to I/O ports directly
+   u16int resv; // u16int iomap_base;
+} __attribute__ ((packed));
+
 typedef struct tss_entry_struct tss_entry_t; 
 
 void set_kernel_stack(u32int stack);
