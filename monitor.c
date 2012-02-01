@@ -14,25 +14,6 @@
 
 #include "monitor.h"
 
-enum e_color {
-	e_color_black = 0x0,
-	e_color_blue = 0x1,
-	e_color_green = 0x2,
-	e_color_cyan = 0x3,
-	e_color_red = 0x4,
-	e_color_magenta = 0x5,
-	e_color_brown = 0x6,
-	e_color_light_grey = 0x7,
-	e_color_dark_grey = 0x8,
-	e_color_light_blue = 0x9,
-	e_color_light_green = 0xA,
-	e_color_light_cyan = 0xB,
-	e_color_light_red = 0xC,
-	e_color_light_magenta = 0xD,
-	e_color_light_brown = 0xE,
-	e_color_white = 0xF
-};
-
 /*
 
 */
@@ -41,14 +22,36 @@ enum e_color {
 
 static u16int cursor_y = 0;
 static u16int cursor_x = 0;
+static e_color backcolor = e_color_black;
+static e_color forecolor = e_color_white;
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
 #define tr_to_linear(x,y) (((y) * SCREEN_WIDTH) + (x))
 
-//static u16int video_memory[SZ_SCREEN] = {0};
 static u16int * video_memory = (u16int*)0xB8000; // Start of VGA buffer
 
+void monitor_get_backcolor(e_color *result)
+{
+	*result = backcolor;
+}
+
+void monitor_get_forecolor(e_color *result)
+{
+	*result = forecolor;
+}
+
+void monitor_set_backcolor(e_color new_value)
+{
+	backcolor = new_value;
+}
+
+void monitor_set_forecolor(e_color new_value)
+{
+	forecolor = new_value;
+}
+
+// We don't actually need the cursor to actually write in the monitor's buffer, but it is cute to see the blink'in
 static void move_cursor()
 {
    // The screen is 80 characters wide
@@ -67,7 +70,7 @@ static void scroll()
    // Get a space character with the default colour attributes.
    //u8int attributeByte = (0 /*black*/ << 4) | (15 /*white*/ & 0x0F);
    //u16int blank = 0x20 /* space */ | (attributeByte << 8);
-	u16int = make_char(e_color_black, e_color_white, (int) ' ');
+	u16int blank = make_char(backcolor, forecolor, (int) ' ');
 
    // Row 25 is the end, this means we need to scroll up
    if(cursor_y >= SCREEN_HEIGHT)
@@ -78,14 +81,14 @@ static void scroll()
        // Move the current text chunk that makes up the screen
        // back in the buffer by a line
        int i;
-       for (i = FIRST_ROW_INDEX*WIDTH_SCREEN ; i < LAST_ROW_INDEX*WIDTH_SCREEN ; i++)
+       for (i = FIRST_ROW_INDEX*SCREEN_WIDTH ; i < LAST_ROW_INDEX*SCREEN_WIDTH ; i++)
        {
-           video_memory[i] = video_memory[i+WIDTH_SCREEN];
+           video_memory[i] = video_memory[i+SCREEN_WIDTH];
        }
 
        // The last line should now be blank. Do this by writing
        // 80 spaces to it.
-       for (i = LAST_ROW_INDEX*WIDTH_SCREEN ; i < SCREEN_HEIGHT*WIDTH_SCREEN ; i++)
+       for (i = LAST_ROW_INDEX*SCREEN_WIDTH ; i < SCREEN_HEIGHT*SCREEN_WIDTH ; i++)
        {
            video_memory[i] = blank;
        }
@@ -111,7 +114,7 @@ void monitor_put(char c)
    // VGA board.
    //u16int attribute = attributeByte << 8;
 	
-	u16int typeme = make_char(e_color_black, e_color_white, (int)c);
+	u16int typeme = make_char(backcolor, forecolor, (int)c);
    u16int *location;
 	
 
@@ -170,7 +173,7 @@ void monitor_clear()
    //u8int attributeByte = (0 /*black*/ << 4) | (15 /*white*/ & 0x0F);
    //u16int blank = 0x20 /* space */ | (attributeByte << 8);
 
-	u16int blank = make_char(e_color_black, e_color_white, (int)' ');
+	u16int blank = make_char(backcolor, forecolor, (int)' ');
 
    int i;
    for (i = 0; i < SCREEN_WIDTH*SCREEN_HEIGHT; i++)

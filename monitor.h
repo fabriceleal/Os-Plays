@@ -30,6 +30,11 @@ void monitor_write(char *c);
 void monitor_write_hex(u32int value);
 void monitor_write_dec(u32int value);
 
+void monitor_set_forecolor(e_color new_value);
+void monitor_set_backcolor(e_color new_value);
+void monitor_get_forecolor(e_color *result);
+void monitor_get_backcolor(e_color *result);
+
 // TODO: This needs to be done, obviously this is not the signature of the printf function
 void printf();
 

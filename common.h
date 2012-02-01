@@ -18,6 +18,29 @@
 #ifndef ___VAMI_COMMON
 #define ___VAMI_COMMON
 
+
+// TODO: this is here but perhaps could be in a better place.
+// TODO: these are the VGA's colors, used in monitor.c ....
+typedef enum e_color {
+	e_color_black = 0x0,
+	e_color_blue = 0x1,
+	e_color_green = 0x2,
+	e_color_cyan = 0x3,
+	e_color_red = 0x4,
+	e_color_magenta = 0x5,
+	e_color_brown = 0x6,
+	e_color_light_grey = 0x7,
+	e_color_dark_grey = 0x8,
+	e_color_light_blue = 0x9,
+	e_color_light_green = 0xA,
+	e_color_light_cyan = 0xB,
+	e_color_light_red = 0xC,
+	e_color_light_magenta = 0xD,
+	e_color_light_brown = 0xE,
+	e_color_white = 0xF
+} e_color;
+
+
 // A header file only declares the functions headers and structs used. 
 // Implementations go into the .c file ;)
 
