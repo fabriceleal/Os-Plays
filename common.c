@@ -27,6 +27,11 @@ u8int inb(u16int port)
    return ret;
 }
 
+/*
+ TODO: Implement and publicize functions for wrapping most of the inline assembly: cli(), sti(), halt() ...
+ TODO: Check linux 0.0.1
+*/
+
 u16int inw(u16int port)
 {
    u16int ret;
