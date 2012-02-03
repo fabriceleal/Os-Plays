@@ -11,6 +11,7 @@
 #include "task.h"
 #include "syscall.h"
 #include "keyboard.h"
+#include "mouse.h"
 
 extern u32int placement_address;
 extern fs_node_t *fs_root;
@@ -115,6 +116,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 
 	//asm volatile ("int $0x3");
 	init_keyboard();
+	init_mouse();
 
 	monitor_write("Happy ending.");
 

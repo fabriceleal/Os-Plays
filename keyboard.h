@@ -8,7 +8,7 @@
  *
  * @section DESCRIPTION
  * 
- * < ... goes here ... >
+ * based on http://www.osdever.net/bkerndev/Docs/keyboard.htm
  *
  */
 
@@ -60,6 +60,7 @@ typedef struct t_key_info
 typedef void (*keyboard_handler)(t_key_info);
 void init_keyboard();
 
+// TODO: Take off this from here, and put in .c
 void keyboard_int_handler(registers_t r);
 
 #endif // ___VAMI_KEYBOARD

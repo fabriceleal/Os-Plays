@@ -8,7 +8,7 @@
  *
  * @section DESCRIPTION
  * 
- * < ... goes here ... >
+ * based in http://wiki.osdev.org/Mouse_Input
  *
  */
 
@@ -16,6 +16,8 @@
 #ifndef ___VAMI_MOUSE
 #define ___VAMI_MOUSE
 
+#include "isr.h"
 
+void init_mouse();
 
 #endif // ___VAMI_MOUSE

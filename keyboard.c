@@ -178,12 +178,7 @@ void keyboard_int_handler(registers_t r)
 {
 	u8int scancode = inb(0x60);
 
-	u8int extra = inb(0x64);	
-	if(extra & 0x20)
-	{
-		// From mouse ?!? :S
-		monitor_write("I'm from mouse :O !\n");
-	}
+	// TODO: Extra handle if from mouse ?
 
 	if(scancode & 0x80)
 	{
