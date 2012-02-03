@@ -104,10 +104,12 @@ void irq_handler(registers_t regs)
    }
 	else
 	{
-		//TODO: Unhandled irq, what to do ???
-		//monitor_write("unhandled irq: ");
-		//monitor_write_dec(regs.int_no);
-		//monitor_put('\n');		
+		// Unhandled IRQ, log it !
+		monitor_set_forecolor(e_color_magenta);
+		monitor_write("IRQ");
+		monitor_write_hex(regs.int_no);
+		monitor_write(" raised!\n");
+		monitor_set_forecolor(e_color_white);
 	}
 }
 

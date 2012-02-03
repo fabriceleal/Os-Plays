@@ -23,6 +23,13 @@
 		.to_type = k_character \
 	}
 
+void letter_handler()
+{
+	// TODO:
+	// Shift is used to negate caps lock. 
+	// AltGr might be used to introduce extra charset
+}
+
 
 
 // TODO: Add support to onKeyPressed and onKeyReleased events [cool for games ;) ]
@@ -170,6 +177,13 @@ void keyboard_released_handler(t_key_info key_pressed)
 void keyboard_int_handler(registers_t r)
 {
 	u8int scancode = inb(0x60);
+
+	u8int extra = inb(0x64);	
+	if(extra & 0x20)
+	{
+		// From mouse ?!? :S
+		monitor_write("I'm from mouse :O !\n");
+	}
 
 	if(scancode & 0x80)
 	{
