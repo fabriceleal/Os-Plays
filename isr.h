@@ -31,7 +31,7 @@ typedef struct registers
 
 
 #define IRQ0  32
-#define IRQ1  33
+#define IRQ1  33 // Keyboard interrupts
 #define IRQ2  34
 #define IRQ3  35
 #define IRQ4  36

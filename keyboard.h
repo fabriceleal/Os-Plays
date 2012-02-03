@@ -46,8 +46,15 @@ typedef struct t_key_info
 {
 	e_key_info_mode mode;
 
-	char to_type;        // FIXME: Obsolete
-	e_key_code key_code; // FIXME: Try to use this one instead ...
+	// TODO: Use also this ...
+	e_key_code key_code; 
+
+	// TODO: Extend this to allow capitalization, extra chars (like AltGr+3 = £), etc ... and extra keys ! (like NumLockOff + NumPad7 = Home)
+	char to_type; 
+
+	// TODO: Add support to extra handlers ...
+	// ...
+
 } t_key_info;
 
 typedef void (*keyboard_handler)(t_key_info);

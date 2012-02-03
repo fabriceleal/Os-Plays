@@ -23,9 +23,9 @@
 		.to_type = k_character \
 	}
 
-/*
-How to handle one key - several chars
-*/
+
+
+// TODO: Add support to onKeyPressed and onKeyReleased events [cool for games ;) ]
 
 // US Layout :S as in http://www.osdever.net/bkerndev/Docs/keyboard.htm
 
@@ -145,13 +145,14 @@ void init_keyboard()
 {
 	// Keyboard throws IRQ1 to signal that there is a key pressed / released
 	register_interrupt_handler(IRQ1, keyboard_int_handler);
-	monitor_write("Installed\n");
+
+	// ** Keyboard installed at this point **
 }
 
 void keyboard_pressed_handler(t_key_info key_pressed)
 {
-	// ...
-	// TODO: ...
+	// Simple routine
+	// TODO: Make possible handling of F1..12 keys, ctrl, alt, shift, etc, etc, etc
 	if(key_pressed.mode == e_key_info_mode_typable )
 	{
 		monitor_put(key_pressed.to_type);
@@ -189,6 +190,6 @@ void keyboard_send_command()
 	while((inb(0x64) & 2) != 0x0);
 	
 	// TODO: Send command here ...
-	
+	// TODO: Turn keyboard lights on and off :D
 	
 }
