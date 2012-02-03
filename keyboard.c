@@ -152,16 +152,17 @@ void keyboard_pressed_handler(t_key_info key_pressed)
 {
 	// ...
 	// TODO: ...
+	if(key_pressed.mode == e_key_info_mode_typable )
+	{
+		monitor_put(key_pressed.to_type);
+	}
 }
 
 void keyboard_released_handler(t_key_info key_pressed)
 {
 	// ...
 	// TODO: ...
-	if(key_pressed.mode == e_key_info_mode_typable )
-	{
-		monitor_put(key_pressed.to_type);
-	}	
+
 }
 
 // Low level dispatcher to keyboard_pressed_handler and keyboard_released_handler
@@ -172,14 +173,13 @@ void keyboard_int_handler(registers_t r)
 	if(scancode & 0x80)
 	{
 		// Key was released
-		keyboard_released_handler( layout[scancode] );
+		// One can use this to unset "key-on" modifiers (shift's, control's, alt's)
+		// TODO: ...
 	}
 	else
 	{
 		// Key was pressed
-		//keyboard_pressed_handler( layout[scancode] );
-		// FIXME: Use here 'pressed'
-		keyboard_released_handler( layout[scancode] );
+		keyboard_pressed_handler( layout[scancode] );
 	}
 }
 
