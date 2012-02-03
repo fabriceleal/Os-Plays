@@ -66,6 +66,8 @@ void isr_handler(registers_t regs)
 	}
 	else
 	{
+
+		monitor_set_forecolor(e_color_magenta);
 		monitor_write("Unhandled interrupt #");
 		monitor_write_dec(int_no);
 		monitor_put('\n');
@@ -74,6 +76,8 @@ void isr_handler(registers_t regs)
 			monitor_write(interrupt_messages[int_no - 1]);
 			monitor_put('\n');
 		}
+		monitor_set_forecolor(e_color_white);
+
 		// ERR!
 		PANIC("Unhandled interrupt");
 	}

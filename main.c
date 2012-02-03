@@ -10,6 +10,7 @@
 #include "initrd.h"
 #include "task.h"
 #include "syscall.h"
+#include "keyboard.h"
 
 extern u32int placement_address;
 extern fs_node_t *fs_root;
@@ -112,7 +113,8 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	//int* i = 0x98765421;
 	//monitor_write_dec(*i);
 
-	asm volatile ("int $0x3");
+	//asm volatile ("int $0x3");
+	init_keyboard();
 
 	monitor_write("Happy ending.");
 
