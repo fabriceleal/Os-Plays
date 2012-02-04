@@ -28,7 +28,7 @@ void init_mouse()
 	// TODO: Make this	
 	//register_interrupt_handler(IRQ5, mouse_int_handler);
 	
-	monitor_write("Installed!");
+	//monitor_write("Installed!");
 }
 
 void mouse_int_handler(registers_t r)

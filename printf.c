@@ -47,8 +47,8 @@ typedef void (*char_processing_func) (char * bf, char dump);
 void format_specifier_processing(char * bf, char_iterator *it);
 void regular_char_processing(char * bf, char_iterator *it);
 
-void format_int(char * bf, int value, char * flags, ...);
-void format_hex(char * bf, u32int value, char * flags, ...);
+void format_int(char * bf, int value, char * formatting_flags, ...);
+void format_hex(char * bf, u32int value, char * formatting_flags, ...);
 
 // **
 
@@ -57,19 +57,14 @@ void sprintf(const char* format, ...)
 	char read = 0;
 	char_iterator it = {
 			.buffer = format,
-			.i = 0
+			.i = -1
 		};
-	// --
 
 	while(next(&it))
 	{
 		switch(current(&it))
 		{
 			case '%':
-				/*monitor_write_dec(it.i);
-				monitor_put('\n');
-				*/
-
 				// Obviously, the extra args should be passed to this call
 				format_specifier_processing(0x0, &it);
 				break;
@@ -83,20 +78,8 @@ void format_specifier_processing(char * bf, char_iterator *it)
 {
 	// ** Currently at the % that raised this function **
 
-	/*monitor_set_forecolor(e_color_magenta);
-	monitor_write(">");
-	monitor_set_forecolor(e_color_white);
-
-	monitor_write_dec(it->i);
-	monitor_put('\n');
-	*/
-
 	// Read again
 	char read = next(it);
-
-	/*monitor_write_dec(it->i);
-	monitor_put('\n');
-	*/
 
 	if(read == '%')
 	{
@@ -131,10 +114,6 @@ void format_specifier_processing(char * bf, char_iterator *it)
 				return;
 		}
 	}while(read = next(it));
-
-	//monitor_set_forecolor(e_color_magenta);
-	//monitor_write("<");
-	//monitor_set_forecolor(e_color_white);
 }
 
 // TODO: Make functions for writing floats, ints, longs, ... to string, that take a formatting and a value as parameters
@@ -144,7 +123,7 @@ void format_specifier_processing(char * bf, char_iterator *it)
 	General useful macros. These macroes assume that you use a var named 'flags' for storing extra information
 */
 #define TEST(bit_condition) (flags & (bit_condition))
-#define SET(bit_condition) flags |= bit_condition
+#define SET(bit_condition)  flags |= bit_condition
 
 #define ASCII_NBR(value_nbr) ((int)'0' - 0   + value_nbr)
 #define ASCII_LTR(value_nbr) ((int)'A' - 0xA + value_nbr)
@@ -155,12 +134,9 @@ void format_hex(char * bf, u32int value, char * formatting_flags, ...)
 	u32int shift = 7*4; // (Number of zeroes at right of 'F' in mask) * 4
 
 	#define ALREADY_FOUND_NON_ZERO 0x1
+	#define IS_LAST                (mask == 0xF)
 
-	#define IS_LAST (mask == 0xF)
-
-	// Bit 1 - already found a non-zero
 	u8int flags = 0x0;
-
 	u8int value_read;
 
 	monitor_write("0x");
@@ -193,7 +169,6 @@ void format_hex(char * bf, u32int value, char * formatting_flags, ...)
 
 	#undef ALREADY_FOUND_NON_ZERO
 	#undef IS_LAST
-
 }
 
 void format_int(char * bf, int value, char * formatting_flags, ...)
@@ -202,11 +177,11 @@ void format_int(char * bf, int value, char * formatting_flags, ...)
 	int mask = 10000;
 	int value_read = 0;
 
-	u8int flags = 0x0;
-
 	#define ALREADY_FOUND_NON_ZERO 0x1
 	#define IS_POSITIVE_OR_ZERO    0x2
 	#define IS_LAST                (mask == 1)
+
+	u8int flags = 0x0;
 
 	// Force to positive to simplify processing
 	if(value >= 0)
@@ -251,7 +226,6 @@ void format_int(char * bf, int value, char * formatting_flags, ...)
 
 #undef SET
 #undef TEST
-
 
 void regular_char_processing(char * bf, char_iterator *it)
 {

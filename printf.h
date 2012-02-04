@@ -18,4 +18,6 @@
 
 void sprintf(const char * format, ...);
 
+
+
 #endif // ___VAMI_PRINTF
