@@ -119,7 +119,7 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	init_keyboard();
 	init_mouse();
 
-	sprintf("Constant %x, it is\n", 789, 0x0000BEAF);
+	sprintf("Constant %x; and %d or %i\n", 789, 0x0000BEAF);
 
 	//monitor_write("Happy ending.");
 

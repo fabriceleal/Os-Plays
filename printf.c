@@ -127,7 +127,7 @@ void format_specifier_processing(char * bf, char_iterator *it)
 				return;
 			case 'd': 
 			case 'i':
-				format_int(0x0, (int) 123, "buffered_formatting");
+				format_int(0x0, (int) -123, "buffered_formatting");
 				return;
 		}
 	}while(read = next(it));
@@ -140,19 +140,23 @@ void format_specifier_processing(char * bf, char_iterator *it)
 // TODO: Make functions for writing floats, ints, longs, ... to string, that take a formatting and a value as parameters
 // ...
 
-void format_hex(char * bf, u32int value, char * formatting_flags, ...)
-{
-	u32int mask = 0xF0000000;
-	u32int shift = 7*4; // Number of zeroes at right of F * 4
-
-#define ALREADY_FOUND_NON_ZERO 0x1
-
+/* 
+	General useful macros. These macroes assume that you use a var named 'flags' for storing extra information
+*/
 #define TEST(bit_condition) (flags & (bit_condition))
 #define SET(bit_condition) flags |= bit_condition
-#define IS_LAST (mask == 0xF)
 
-#define ASCII_NBR_OFFSET ((int)'0' - 0)
-#define ASCII_LTR_OFFSET ((int)'A' - 0xA)
+#define ASCII_NBR(value_nbr) ((int)'0' - 0   + value_nbr)
+#define ASCII_LTR(value_nbr) ((int)'A' - 0xA + value_nbr)
+
+void format_hex(char * bf, u32int value, char * formatting_flags, ...)
+{
+	u32int mask  = 0xF0000000;
+	u32int shift = 7*4; // (Number of zeroes at right of 'F' in mask) * 4
+
+	#define ALREADY_FOUND_NON_ZERO 0x1
+
+	#define IS_LAST (mask == 0xF)
 
 	// Bit 1 - already found a non-zero
 	u8int flags = 0x0;
@@ -169,13 +173,6 @@ void format_hex(char * bf, u32int value, char * formatting_flags, ...)
 			SET( ALREADY_FOUND_NON_ZERO );
 		}
 
-		//monitor_write_hex(mask);		
-		//monitor_put('.');
-		//monitor_write_hex(value);
-		//monitor_put('.');
-		//monitor_write_hex(value_read);
-		//monitor_put('\n');
-
 		// If already found a zero, one must print all values read
 		// If is the last hex digit, print it anyways
 		if( IS_LAST || TEST( ALREADY_FOUND_NON_ZERO ))
@@ -183,31 +180,78 @@ void format_hex(char * bf, u32int value, char * formatting_flags, ...)
 			switch(value_read)
 			{
 				case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9:
-					monitor_put( value_read + ASCII_NBR_OFFSET );
+					monitor_put( ASCII_NBR(value_read) );
 					break;
 				// Else, A .. F
 				default:
-					monitor_put( value_read + ASCII_LTR_OFFSET );
+					monitor_put( ASCII_LTR(value_read) );
 			}
 		}
 		mask >>= 4;
 		shift -= 4;
 	}
 
-#undef ASCII_LTR_OFFSET
-#undef ASCII_NBR_OFFSET
+	#undef ALREADY_FOUND_NON_ZERO
+	#undef IS_LAST
 
-#undef IS_LAST
+}
+
+void format_int(char * bf, int value, char * formatting_flags, ...)
+{
+	// Assuming that int is ~-65537 < x < ~65536
+	int mask = 10000;
+	int value_read = 0;
+
+	u8int flags = 0x0;
+
+	#define ALREADY_FOUND_NON_ZERO 0x1
+	#define IS_POSITIVE_OR_ZERO    0x2
+	#define IS_LAST                (mask == 1)
+
+	// Force to positive to simplify processing
+	if(value >= 0)
+	{
+		SET(IS_POSITIVE_OR_ZERO);
+	}
+	else
+	{
+		value *= -1; // TODO: Is there a clever way to flip the signal (using bit ops)?
+	}
+
+	if(!TEST(IS_POSITIVE_OR_ZERO)){
+		monitor_put('-');
+	}
+
+	while(mask)
+	{
+		// int-div here
+		value_read = value / mask; 
+
+		if(value_read && !(TEST(ALREADY_FOUND_NON_ZERO)))
+		{
+			SET(ALREADY_FOUND_NON_ZERO);
+		}
+
+		if(IS_LAST || TEST(ALREADY_FOUND_NON_ZERO))
+		{
+			monitor_put( ASCII_NBR(value_read) );
+		}		
+		
+		value -= mask * value_read;
+		mask /= 10;
+	}
+
+	#undef IS_LAST
+	#undef IS_POSITIVE_OR_ZERO
+	#undef ALREADY_FOUND_NON_ZERO
+}
+
+#undef ASCII_LTR
+#undef ASCII_NBR
+
 #undef SET
 #undef TEST
-#undef ALREADY_FOUND_NON_ZERO
 
-}
-
-void format_int(char * bf, int value, char * flags, ...)
-{
-	monitor_write_dec(value);
-}
 
 void regular_char_processing(char * bf, char_iterator *it)
 {
