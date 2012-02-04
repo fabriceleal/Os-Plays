@@ -24,11 +24,17 @@ typedef struct char_iterator
 	int i;
 } char_iterator;
 
+/*
+ * Advances the cursor and returns the char at the new point
+ */
 char next(char_iterator *it)
-{
-	return (it->buffer[it->i++]);
+{	
+	return (it->buffer[++it->i]);
 }
 
+/*
+ * Returns the char at the current point
+ */
 char current(char_iterator *it)
 {
 	return (it->buffer[it->i]);
@@ -55,29 +61,42 @@ void sprintf(const char* format, ...)
 		};
 	// --
 
-	while(read = next(&it))
+	while(next(&it))
 	{
-		if(read == '%')
+		switch(current(&it))
 		{
-			// Obviously, the extra args should be passed to this call
-			format_specifier_processing(0x0, &it);
+			case '%':
+				/*monitor_write_dec(it.i);
+				monitor_put('\n');
+				*/
+
+				// Obviously, the extra args should be passed to this call
+				format_specifier_processing(0x0, &it);
+				break;
+			default:		
+				regular_char_processing(0x0, &it);				
 		}
-		else
-		{
-			regular_char_processing(0x0, &it);
-		}		
 	}
 }
 
 void format_specifier_processing(char * bf, char_iterator *it)
 {
 	// ** Currently at the % that raised this function **
-	monitor_set_forecolor(e_color_magenta);
+
+	/*monitor_set_forecolor(e_color_magenta);
 	monitor_write(">");
 	monitor_set_forecolor(e_color_white);
 
+	monitor_write_dec(it->i);
+	monitor_put('\n');
+	*/
+
 	// Read again
 	char read = next(it);
+
+	/*monitor_write_dec(it->i);
+	monitor_put('\n');
+	*/
 
 	if(read == '%')
 	{
@@ -113,9 +132,9 @@ void format_specifier_processing(char * bf, char_iterator *it)
 		}
 	}while(read = next(it));
 
-	monitor_set_forecolor(e_color_magenta);
-	monitor_write("<");
-	monitor_set_forecolor(e_color_white);
+	//monitor_set_forecolor(e_color_magenta);
+	//monitor_write("<");
+	//monitor_set_forecolor(e_color_white);
 }
 
 // TODO: Make functions for writing floats, ints, longs, ... to string, that take a formatting and a value as parameters
@@ -124,6 +143,7 @@ void format_specifier_processing(char * bf, char_iterator *it)
 void format_hex(char * bf, u32int value, char * formatting_flags, ...)
 {
 	u32int mask = 0xF0000000;
+	u32int shift = 7*4; // Number of zeroes at right of F * 4
 
 #define ALREADY_FOUND_NON_ZERO 0x1
 
@@ -141,13 +161,20 @@ void format_hex(char * bf, u32int value, char * formatting_flags, ...)
 
 	monitor_write("0x");
 
-	while(mask){
-		value_read = mask & value;
+	while( mask ){
+		value_read = (mask & value) >> shift;
 
-		if(value_read && ~ TEST( ALREADY_FOUND_NON_ZERO ) )
+		if((value_read) && !(TEST( ALREADY_FOUND_NON_ZERO )) )
 		{
 			SET( ALREADY_FOUND_NON_ZERO );
 		}
+
+		//monitor_write_hex(mask);		
+		//monitor_put('.');
+		//monitor_write_hex(value);
+		//monitor_put('.');
+		//monitor_write_hex(value_read);
+		//monitor_put('\n');
 
 		// If already found a zero, one must print all values read
 		// If is the last hex digit, print it anyways
@@ -164,6 +191,7 @@ void format_hex(char * bf, u32int value, char * formatting_flags, ...)
 			}
 		}
 		mask >>= 4;
+		shift -= 4;
 	}
 
 #undef ASCII_LTR_OFFSET
