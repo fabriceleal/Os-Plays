@@ -119,9 +119,9 @@ int main(struct multiboot *mboot_ptr, u32int initial_stack)
 	init_keyboard();
 	init_mouse();
 
-	sprintf("sdqwklejqw %d %c %e \n");
+	sprintf("sdqwklejqw %x \n", 789, 0x0000BEAF);
 
-	monitor_write("Happy ending.");
+	//monitor_write("Happy ending.");
 
 	return 0;/*
 
