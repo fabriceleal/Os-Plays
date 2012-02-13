@@ -1,3 +1,4 @@
+# Check http://bochs.sourceforge.net/doc/docbook/user/bochsrc.html
 megs: 32
 romimage: file=/usr/share/bochs/BIOS-bochs-latest
 vgaromimage: file=/usr/share/bochs/VGABIOS-elpin-2.40
@@ -6,6 +7,6 @@ boot: a
 log: bochsout.txt
 mouse: enabled=0
 clock: sync=realtime
-cpu: ips=500000
+cpu: ips=1000000
 #gdbstub: enabled=1, port=1234, text_base=0, data_base=0, bss_base=0
 #display_library: x, options="gui_debug"

@@ -4,6 +4,8 @@
 # mounts the correct loopback device, runs bochs, then unmounts.
 
 sudo /sbin/losetup /dev/loop1 floppy.img
-sudo bochs -f bochsrc.txt
+# -f : specify config file
+# -q : skip initial menu
+sudo bochs -f bochsrc.txt -q
 sudo /sbin/losetup -d /dev/loop1
 
